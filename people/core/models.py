@@ -4,6 +4,13 @@ from django.contrib.auth.models import AbstractUser
 
 
 class User(AbstractUser):
+    pass
+
+
+class Person(models.Model):
+    first_name = models.CharField(max_length=128, default="")
+    last_name = models.CharField(max_length=128, default="")
+
     avatar = models.ImageField(upload_to="avatars", default=None, null=True, blank=True)
 
     # Additional fields to support representation as a Fabric.js object.
