@@ -27,9 +27,9 @@ class Person(TimestampedMixin, models.Model):
     avatar = models.ImageField(upload_to="avatars", default=None, null=True, blank=True)
 
     # Additional fields to support representation as a Fabric.js object.
-    x = models.IntegerField(default=0)
-    y = models.IntegerField(default=0)
-    angle = models.IntegerField(default=0)
+    x = models.FloatField(default=0)
+    y = models.FloatField(default=0)
+    angle = models.FloatField(default=0)
     scale = models.FloatField(default=1.0)
 
     def __str__(self):

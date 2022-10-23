@@ -11,7 +11,42 @@
 <body>
   <canvas id="canvas"></canvas>
 
-  <!-- Fabric.js Setup -->
+  <!-- Http client setup -->
+  <script>
+
+    // https://docs.djangoproject.com/en/dev/ref/csrf/#ajax
+    function getCookie(name) {
+      var cookieValue = null;
+      if (document.cookie && document.cookie !== "") {
+        var cookies = document.cookie.split(";");
+        for (var i = 0; i < cookies.length; i++) {
+          var cookie = cookies[i].trim();
+          // Does this cookie string begin with the name we want?
+          if (cookie.substring(0, name.length + 1) === (name + "=")) {
+            cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+            break;
+          }
+        }
+      }
+      return cookieValue;
+    }
+
+    function httpPost(url, payload) {
+      const csrftoken = getCookie('csrftoken');
+      const formData = new FormData();
+      for (const key of Object.keys(payload)) {
+        const value = payload[key];
+        formData.append(key, value);
+      }
+      return fetch(url, {
+        method: "POST",
+        headers: { "X-CSRFToken": csrftoken},
+        mode: 'same-origin',
+        body: formData,
+      });
+    }
+  </script>
+  <!-- Fabric.js setup -->
   <script src="{% static "core/fabric.5.2.1.min.js" %}"></script>
   <script src="{% static "core/fabricjs-object-fit.beta5.umd.js" %}"></script>
   <script>
@@ -74,7 +109,9 @@
       opt.e.stopPropagation();
     });
 
-    function addPerson(firstName, lastName, avatarImageUrl, x, y, angle, scale) {
+    function addPerson(
+      personId, firstName, lastName, avatarImageUrl, x, y, angle, scale
+    ) {
       const cachebuster = '?' + (Math.random() + 1).toString(36).substring(7);
       const fixedWidth = 240;
 
@@ -107,14 +144,32 @@
         var group = new fabric.Group([imageContainer, text])
         group.left = x;
         group.top = y;
+        group.angle = angle;
+        group.scaleX = scale;
+        group.scaleY = scale;
 
         canvas.add(group);
+
+        // Setup events.
+        if (personId) {
+          group.on("modified", function (opt) {
+            const obj = opt.target;
+            const payload = {
+              x: obj.left,
+              y: obj.top,
+              angle: obj.angle,
+              scale: obj.scaleX,
+            };
+            httpPost('/persons/' + personId, payload);
+          });
+        }
       });
     }
 
     // Add initial people.
     {% for person in persons %}
       addPerson(
+        {{ person.id }},
         '{{ person.first_name }}',
         '{{ person.last_name }}',
         '{{ person.avatar_url }}',

@@ -1,10 +1,13 @@
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse
 from django.shortcuts import render
+from django.views.decorators.http import require_http_methods
 
 from people.core.models import Person
 
 
 @login_required
+@require_http_methods(("GET",))
 def home(request):
     persons = Person.objects.filter(created_by=request.user)
 
@@ -14,3 +17,17 @@ def home(request):
         person.avatar_url = request.build_absolute_uri(person.avatar.url)
 
     return render(request, "home.html", {"persons": persons})
+
+
+@login_required
+@require_http_methods(("POST",))
+def update_person(request, person_id: int):
+    person = Person.objects.get(id=person_id)
+
+    person.x = float(request.POST["x"])
+    person.y = float(request.POST["y"])
+    person.angle = float(request.POST["angle"])
+    person.scale = float(request.POST["scale"])
+    person.save()
+
+    return HttpResponse()

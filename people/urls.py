@@ -7,6 +7,7 @@ from people.core import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path("persons/<int:person_id>", views.update_person, name="update-person"),
     path("", views.home),
 ]
 
