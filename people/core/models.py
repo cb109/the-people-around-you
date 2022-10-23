@@ -3,13 +3,26 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 
-class User(AbstractUser):
+class TimestampedMixin(models.Model):
+    created_at = models.DateTimeField(auto_now_add=True)
+    modified_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True
+
+
+class User(TimestampedMixin, AbstractUser):
     pass
 
 
-class Person(models.Model):
+class Person(TimestampedMixin, models.Model):
     first_name = models.CharField(max_length=128, default="")
     last_name = models.CharField(max_length=128, default="")
+
+    created_by = models.ForeignKey(
+        User, default=None, null=True, on_delete=models.CASCADE
+    )
+    """Determines who gets to see/edit this."""
 
     avatar = models.ImageField(upload_to="avatars", default=None, null=True, blank=True)
 
@@ -18,3 +31,6 @@ class Person(models.Model):
     y = models.IntegerField(default=0)
     angle = models.IntegerField(default=0)
     scale = models.FloatField(default=1.0)
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
