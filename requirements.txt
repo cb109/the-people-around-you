@@ -8,6 +8,8 @@ asgiref==3.5.2
     # via django
 django==4.1.2
     # via -r requirements.in
+pillow==9.2.0
+    # via -r requirements.in
 sqlparse==0.4.3
     # via django
 tzdata==2022.5
