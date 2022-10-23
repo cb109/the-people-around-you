@@ -37,8 +37,6 @@ var canvas = new fabric.Canvas("canvas", {
   height: window.innerHeight
 });
 
-console.log(canvas);
-
 function setDefaultControls(obj) {
   obj.cornerStyle = "circle";
   obj.cornerSize = 16;
