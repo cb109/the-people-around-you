@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render
+from django.shortcuts import redirect
 from django.views.decorators.http import require_http_methods
 
 from people.core.models import Person
@@ -17,6 +18,17 @@ def home(request):
         person.avatar_url = request.build_absolute_uri(person.avatar.url)
 
     return render(request, "home.html", {"persons": persons})
+
+
+@login_required
+@require_http_methods(("POST",))
+def create_person(request):
+    Person.objects.get_or_create(
+        first_name=request.POST["first_name"],
+        last_name=request.POST["last_name"],
+        created_by=request.user,
+    )
+    return redirect("home")
 
 
 @login_required

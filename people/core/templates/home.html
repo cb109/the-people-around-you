@@ -51,19 +51,57 @@
   <canvas id="canvas"></canvas>
 
   <div id="main-context-menu">
-    <div class="item">Create new Person</div>
+    <div class="item" onclick="showCreatePersonForm()">Create new Person</div>
+  </div>
+
+  <div
+    id="create-person-form"
+    style="
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1000;
+      width: 100vw;
+      height: 100vh;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(16px);
+    "
+  >
+    <form method="POST" action="{% url 'create-person' %}">
+      {% csrf_token %}
+      <input type="text" name="first_name" placeholder="First Name" required>
+      <input type="text" name="last_name" placeholder="Last Name" required>
+      <button type="submit">Create</button>
+    </form>
   </div>
 
   <script src="{% static "core/fabric.5.2.1.min.js" %}"></script>
   <script src="{% static "core/fabricjs-object-fit.beta5.umd.js" %}"></script>
-  <script src="{% static "core/app.js" %}"></script>
+  <script src="{% static "core/fabricApp.js" %}"></script>
   <script>
+    const FALLBACK_AVATAR_URL = "https://img.icons8.com/wired/240/circled-user.png";
+
+    function showCreatePersonForm() {
+      const el = document.getElementById("create-person-form");
+      el.style.display = "flex";
+
+      document.querySelector("input[name=first_name]").focus();
+    }
+
     // Setup custom context menu.
     const body = document.querySelector("body");
     const contextMenu = document.getElementById("main-context-menu");
     const contextMenuItems = document.querySelectorAll("#main-context-menu .item");
 
     body.addEventListener("contextmenu", function (event) {
+      const body = document.querySelector("body");
+      if (document.activeElement != body) {
+        return;
+      }
+
       event.preventDefault();
       const { clientX: mouseX, clientY: mouseY } = event;
       contextMenu.style.top = mouseY + "px";
@@ -87,7 +125,7 @@
         {{ person.id }},
         "{{ person.first_name }}",
         "{{ person.last_name }}",
-        "{{ person.avatar_url }}",
+        "{{ person.avatar_url }}" || FALLBACK_AVATAR_URL,
         {{ person.x }},
         {{ person.y }},
         {{ person.angle }},

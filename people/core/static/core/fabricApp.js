@@ -34,7 +34,9 @@ function httpPost(url, payload) {
 
 var canvas = new fabric.Canvas("canvas", {
   width: window.innerWidth,
-  height: window.innerHeight
+  height: window.innerHeight,
+  uniformScaling: true,
+  uniscaleKey: 'null',
 });
 
 function setDefaultControls(obj) {
@@ -121,12 +123,14 @@ function addPerson(
     });
     text.scale(0.66);
 
-    var group = new fabric.Group([imageContainer, text])
+    var group = new fabric.Group([imageContainer, text]);
     group.left = x;
     group.top = y;
     group.angle = angle;
     group.scaleX = scale;
     group.scaleY = scale;
+    group.minScaleLimit = 0.5;
+    group.lockScalingFlip = true;
 
     canvas.add(group);
 
