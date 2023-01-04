@@ -40,12 +40,12 @@ var canvas = new fabric.Canvas("canvas", {
 });
 
 function setDefaultControls(obj) {
-  obj.cornerStyle = "circle";
-  obj.cornerSize = 16;
-  obj.transparentCorners = false;
-  obj.centeredScaling = true;
-  obj.centeredRotation = true;
-  for (let controlName of ["ml", "mt", "mr", "mb"]) {
+  // obj.cornerStyle = "circle";
+  // obj.cornerSize = 16;
+  // obj.transparentCorners = false;
+  // obj.centeredScaling = true;
+  // obj.centeredRotation = true;
+  for (let controlName of ['tl', 'tr', 'br', 'bl', 'ml', 'mt', 'mr', 'mb', 'mtr']) {
     obj.setControlVisible(controlName, false);
   }
 }
@@ -104,33 +104,38 @@ function addPerson(
       height: fixedWidth,
       mode: "cover",
     });
-    imageContainer.set("shadow", {
-      blur: 16, offsetX: 4, offsetY: 4, color: "rgba(0,0,0,0.25)"
-    });
+    // imageContainer.set("shadow", {
+    //   blur: 16, offsetX: 4, offsetY: 4, color: "rgba(0,0,0,0.25)"
+    // });
     imageContainer.set({
       clipPath: new fabric.Circle({
         radius: fixedWidth / 2,
         originX: "center",
-        originY: "center"
+        originY: "center",
       })
     });
 
     var text = new fabric.Text(firstName + ' ' + lastName, {
       textAlign: 'center',
-      top: imageContainer.top + imageContainer.height + 16,
+      top: imageContainer.top + imageContainer.height + 12,
       fill: "black",
       fontFamily: "Arial, sans-serif",
+      fontSize: 36
     });
-    text.scale(0.66);
+    text.left = (imageContainer.width - text.width) / 2;
 
     var group = new fabric.Group([imageContainer, text]);
     group.left = x;
     group.top = y;
-    group.angle = angle;
+    // group.angle = angle;
     group.scaleX = scale;
     group.scaleY = scale;
     group.minScaleLimit = 0.5;
     group.lockScalingFlip = true;
+    group.lockRotation = true;
+    group.lockScalingX = true;
+    group.lockScalingY = true;
+
 
     canvas.add(group);
 
