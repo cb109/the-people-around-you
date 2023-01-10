@@ -17,17 +17,22 @@ def home(request):
             continue
         person.avatar_url = request.build_absolute_uri(person.avatar.url)
 
-    return render(request, "home.html", {"persons": persons})
+    return render(request, "core/home.html", {"persons": persons})
 
 
 @login_required
-@require_http_methods(("POST",))
+@require_http_methods(("GET", "POST"))
 def create_person(request):
-    Person.objects.get_or_create(
-        first_name=request.POST["first_name"],
-        last_name=request.POST["last_name"],
-        created_by=request.user,
-    )
+    if request.method == "GET" and request.htmx:
+        return render(request, "core/_create_person_dialog.html", {})
+
+    elif request.method == "POST":
+        Person.objects.get_or_create(
+            first_name=request.POST["first_name"],
+            last_name=request.POST["last_name"],
+            created_by=request.user,
+        )
+
     return redirect("home")
 
 

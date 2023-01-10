@@ -136,7 +136,6 @@ function addPerson(
     group.lockScalingX = true;
     group.lockScalingY = true;
 
-
     canvas.add(group);
 
     // Setup events.
