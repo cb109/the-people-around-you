@@ -93,6 +93,15 @@ canvas.on("mouse:wheel", function (opt) {
   opt.e.stopPropagation();
 });
 
+function removePerson(personId) {
+  canvas.getObjects().forEach(obj => {
+    if (!!obj.personId && obj.personId == personId) {
+      obj.remove();
+      return;
+    }
+  });
+}
+
 function addPerson(
   personId, firstName, lastName, avatarImageUrl, x, y, angle, scale
 ) {
@@ -139,6 +148,8 @@ function addPerson(
     group.lockScalingX = true;
     group.lockScalingY = true;
 
+    group.set('personId', personId);
+
     canvas.add(group);
 
     // Setup events.
@@ -156,3 +167,20 @@ function addPerson(
     }
   });
 }
+
+function onObjectSelectionChanged() {
+  const selectedPerson = canvas.getActiveObject();
+  const form = document.getElementById('form-delete-selected-person');
+
+  if (!selectedPerson || selectedPerson.type !== 'group') {
+    form.classList.add('invisible');
+    form.removeAttribute('action');
+    return;
+  }
+  form.classList.remove('invisible');
+  form.setAttribute('action', '/persons/' + selectedPerson.personId + '/delete');
+}
+
+canvas.on('selection:created', onObjectSelectionChanged);
+canvas.on('selection:updated', onObjectSelectionChanged);
+canvas.on('selection:cleared', onObjectSelectionChanged);

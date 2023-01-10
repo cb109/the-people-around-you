@@ -66,3 +66,12 @@ def update_person(request, person_id: int):
     person.save()
 
     return HttpResponse()
+
+
+@login_required
+@require_http_methods(("POST",))
+def delete_person(request, person_id: int):
+    person = Person.objects.get(id=person_id)
+    assert person.created_by == request.user
+    person.delete()
+    return redirect("home")

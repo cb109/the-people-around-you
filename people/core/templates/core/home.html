@@ -25,24 +25,39 @@
   }
 
   .main-ui {
+    display: flex;
     position: fixed;
     top: 16px;
     left: 20px;
     z-index: 1;
   }
 </style>
-<body>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
   <canvas id="canvas"></canvas>
 
   <div class="main-ui">
     <button
       type="button"
-      class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+      class="mr-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
       hx-get="{% url 'create-person' %}"
       hx-target="#main-dialog"
     >
       Add new Person
     </button>
+    <form
+      class="invisible"
+      method="POST"
+      action="/invalid"
+      id="form-delete-selected-person"
+    >
+      {% csrf_token %}
+      <button
+        type="submit"
+        class="mr-3 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+      >
+        Delete Person
+      </button>
+    </form>
   </div>
 
   <div id="main-dialog"></div>
