@@ -1,0 +1,12 @@
+{% for person in persons %}
+  addPerson(
+    {{ person.id }},
+    "{{ person.first_name }}",
+    "{{ person.last_name }}",
+    "{{ person.avatar_url }}",
+    {{ person.x }},
+    {{ person.y }},
+    {{ person.angle }},
+    {{ person.scale }}
+  )
+{% endfor %}

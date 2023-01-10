@@ -1,5 +1,7 @@
 const { ObjectFit } = FabricJSObjectFit.setup(fabric);
 
+const FALLBACK_AVATAR_URL = "https://img.icons8.com/wired/240/circled-user.png";
+
 // https://docs.djangoproject.com/en/dev/ref/csrf/#ajax
 function getCookie(name) {
   var cookieValue = null;
@@ -97,7 +99,8 @@ function addPerson(
   const cachebuster = '?' + (Math.random() + 1).toString(36).substring(7);
   const fixedWidth = 240;
 
-  fabric.Image.fromURL(avatarImageUrl + cachebuster, function (img) {
+  const imageUrl = avatarImageUrl || FALLBACK_AVATAR_URL;
+  fabric.Image.fromURL(imageUrl + cachebuster, function (img) {
     // Simulate css's 'object-fit' via FabricJSObjectFit.
     const imageContainer = new ObjectFit(img, {
       width: fixedWidth,

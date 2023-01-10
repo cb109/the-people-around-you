@@ -24,41 +24,24 @@
     height: 100vh;
   }
 
-  #main-context-menu {
+  .main-ui {
     position: fixed;
-    top: 0;
-    left: 0;
-    z-index: 10000;
-    width: 200px;
-    /* display: none; */
-    border: 1px solid rgba(0, 0, 0, 0.16);
-    /* border-top: 1px solid rgba(0, 0, 0, 0.16); */
-    /* border-bottom: 1px solid rgba(0, 0, 0, 0.16); */
-  }
-  #main-context-menu.visible {
-    display: block;
-  }
-
-  #main-context-menu .item {
-    background: white;
-    padding: 8px 10px;
-    font-size: 15px;
-    cursor: pointer;
-  }
-  #main-context-menu .item:hover {
-    background: rgb(240, 240, 240);
+    top: 16px;
+    left: 20px;
+    z-index: 1;
   }
 </style>
 <body>
   <canvas id="canvas"></canvas>
 
-  <div id="main-context-menu">
+  <div class="main-ui">
     <button
-      class="item"
+      type="button"
+      class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
       hx-get="{% url 'create-person' %}"
       hx-target="#main-dialog"
     >
-      Create new Person
+      Add new Person
     </button>
   </div>
 
@@ -68,49 +51,7 @@
   <script src="{% static "core/fabricjs-object-fit.beta5.umd.js" %}"></script>
   <script src="{% static "core/fabricApp.js" %}"></script>
   <script>
-    const FALLBACK_AVATAR_URL = "https://img.icons8.com/wired/240/circled-user.png";
-
-    // Setup custom context menu.
-    const body = document.querySelector("body");
-    const contextMenu = document.getElementById("main-context-menu");
-    const contextMenuItems = document.querySelectorAll("#main-context-menu .item");
-
-    // body.addEventListener("contextmenu", function (event) {
-    //   const body = document.querySelector("body");
-    //   if (document.activeElement != body) {
-    //     return;
-    //   }
-
-    //   event.preventDefault();
-    //   const { clientX: mouseX, clientY: mouseY } = event;
-    //   contextMenu.style.top = mouseY + "px";
-    //   contextMenu.style.left = mouseX + "px";
-    //   contextMenu.classList.add("visible");
-    // });
-    // body.addEventListener("click", function (event) {
-    //   if (event.target.offsetParent != contextMenu) {
-    //     contextMenu.classList.remove("visible");
-    //   }
-    // });
-    // for (const contextMenuItem of contextMenuItems) {
-    //   contextMenuItem.addEventListener("click", function (event) {
-    //     contextMenu.classList.remove("visible");
-    //   });
-    // }
-
-    // Add initial people.
-    {% for person in persons %}
-      addPerson(
-        {{ person.id }},
-        "{{ person.first_name }}",
-        "{{ person.last_name }}",
-        "{{ person.avatar_url }}" || FALLBACK_AVATAR_URL,
-        {{ person.x }},
-        {{ person.y }},
-        {{ person.angle }},
-        {{ person.scale }}
-      )
-    {% endfor %}
+    {% include "core/_render_persons_loop.html" with persons=persons only %}
   </script>
 </body>
 </html>
