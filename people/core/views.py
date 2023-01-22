@@ -1,4 +1,6 @@
+import os
 from django import forms
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import redirect
@@ -28,12 +30,16 @@ def home(request):
 class PersonForm(forms.ModelForm):
     class Meta:
         model = Person
-        fields = ("first_name", "last_name")
+        fields = ("first_name", "last_name", "avatar")
 
 
 @login_required
 @require_http_methods(("GET", "POST"))
 def create_person(request):
+    from pprint import pprint
+
+    pprint(request.POST)
+    pprint(request.FILES)
     if request.method == "GET" and request.htmx:
         return render(request, "core/_create_person_dialog.html", {})
 
@@ -45,6 +51,13 @@ def create_person(request):
             )
 
         person = form.save(commit=False)
+
+        avatar_file = request.FILES["avatar"]
+        avatar_filepath = os.path.join(settings.MEDIA_ROOT, "avatars", avatar_file.name)
+        with open(avatar_filepath) as f:
+            f.write(avatar_file)
+        person.avatar = avatar_filepath
+
         person.created_by = request.user
         person.save()
 
