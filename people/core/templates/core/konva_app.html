@@ -1,0 +1,114 @@
+<div id="app">
+  <v-stage
+    ref="stage"
+    :config="configKonva"
+  >
+    <v-layer ref="layer">
+    <v-group
+      v-for="person in persons"
+      :key="person.first_name"
+      :config="{draggable: true, clipFunc: clipFuncCircle}"
+    >
+      <v-image :config="{image: person.image}" />
+    </v-group>
+  </v-layer>
+</div>
+
+<script>
+  const initialPersons = [
+    {% for person in persons %}
+      {
+        id: {{ person.id }},
+        first_name: "{{ person.first_name }}",
+        last_name: "{{ person.last_name }}",
+        avatar: "{{ person.avatar }}",
+        x: {{ person.x }},
+        y: {{ person.y }},
+        angle: {{ person.angle }},
+        scale: {{ person.scale }},
+        image: null,
+      },
+    {% endfor %}
+  ];
+
+  function clipFuncCircle (ctx) {
+    ctx.arc(150, 150, 150, 0, Math.PI * 2, false);
+  }
+
+  const app = Vue.createApp({
+    data() {
+      return {
+        clipFuncCircle: clipFuncCircle,
+        configKonva: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          draggable: true,
+        },
+        persons: initialPersons,
+      };
+    },
+    created() {
+      for (let person of this.persons) {
+        const image = new Image();
+        image.src = person.avatar;
+        image.onload = () => {
+          person.image = image;
+        };
+      };
+    },
+    mounted() {
+      this.setupZoom();
+    },
+    methods: {
+      addPerson() {
+        this.persons.push(Object.assign({}, this.persons[0]));
+      },
+      setupZoom() {
+        const stage = this.$refs.stage.getStage();
+        const scaleBy = 1.12;
+        stage.on('wheel', (e) => {
+          // stop default scrolling
+          e.evt.preventDefault();
+
+          var oldScale = stage.scaleX();
+          var pointer = stage.getPointerPosition();
+
+          var mousePointTo = {
+            x: (pointer.x - stage.x()) / oldScale,
+            y: (pointer.y - stage.y()) / oldScale,
+          };
+
+          // how to scale? Zoom in? Or zoom out?
+          let direction = e.evt.deltaY > 0 ? -1 : 1;
+
+          // when we zoom on trackpad, e.evt.ctrlKey is true
+          // in that case lets revert direction
+          if (e.evt.ctrlKey) {
+            direction = -direction;
+          }
+
+          var newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+
+          stage.scale({ x: newScale, y: newScale });
+
+          var newPos = {
+            x: pointer.x - mousePointTo.x * newScale,
+            y: pointer.y - mousePointTo.y * newScale,
+          };
+          stage.position(newPos);
+        });
+      },
+    }
+  });
+
+  app.use(VueKonva);
+  app.mount('#app');
+
+</script>
+
+<style>
+  #app {
+    width: 100vw;
+    height: 100vh;
+  }
+</style>

@@ -16,7 +16,7 @@ def _get_renderable_persons(request, persons=None):
     for person in persons:
         if not person.avatar.name:
             continue
-        person.avatar_url = request.build_absolute_uri(person.avatar.url)
+        person.avatar = request.build_absolute_uri(person.avatar.url)
     return persons
 
 
@@ -40,10 +40,11 @@ def create_person(request):
 
     pprint(request.POST)
     pprint(request.FILES)
-    if request.method == "GET" and request.htmx:
+
+    if request.method == "GET":
         return render(request, "core/_create_person_dialog.html", {})
 
-    elif request.method == "POST" and request.htmx:
+    elif request.method == "POST":
         form = PersonForm(request.POST)
         if not form.is_valid():
             return render(

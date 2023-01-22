@@ -6,10 +6,16 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <script src="{% static 'core/tailwindcss.3.2.4.min.js' %}"></script>
-  <script src="{% static 'core/htmx.1.8.4.min.js' %}"></script>
+
   <script src="{% static 'core/cropper.1.5.13.min.js' %}"></script>
   <link href="{% static 'core/cropper.1.5.13.min.css' %}" rel="stylesheet"">
+
+  <script src="{% static "core/vue.3.2.45.global.min.js" %}"></script>
+  <script src="{% static "core/konva.8.4.0.min.js" %}"></script>
+  <script src="{% static "core/vue-konva.3.0.2.min.js" %}"></script>
+
   <title>The People Around You</title>
 </head>
 <style>
@@ -20,55 +26,8 @@
     padding: 0;
     margin: 0;
   }
-
-  #canvas {
-    width: 100vw;
-    height: 100vh;
-  }
-
-  .main-ui {
-    display: flex;
-    position: fixed;
-    top: 16px;
-    left: 20px;
-    z-index: 1;
-  }
 </style>
-<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
-  <canvas id="canvas"></canvas>
-
-  <div class="main-ui">
-    <button
-      type="button"
-      class="mr-3 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-      hx-get="{% url 'create-person' %}"
-      hx-target="#main-dialog"
-    >
-      Add new Person
-    </button>
-    <form
-      class="invisible"
-      method="POST"
-      action="/invalid"
-      id="form-delete-selected-person"
-    >
-      {% csrf_token %}
-      <button
-        type="submit"
-        class="mr-3 bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-      >
-        Delete Person
-      </button>
-    </form>
-  </div>
-
-  <div id="main-dialog"></div>
-
-  <script src="{% static "core/fabric.5.2.1.min.js" %}"></script>
-  <script src="{% static "core/fabricjs-object-fit.beta5.umd.js" %}"></script>
-  <script src="{% static "core/fabricApp.js" %}"></script>
-  <script>
-    {% include "core/_render_persons_loop.html" with persons=persons only %}
-  </script>
+<body>
+  {% include "core/konva_app.html" with persons=persons only %}
 </body>
 </html>
