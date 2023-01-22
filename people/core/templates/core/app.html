@@ -9,15 +9,16 @@
   >
     <button
       type="button"
+      class="btn btn-lg btn-primary"
       @click="showDialog = true"
     >
       Add Person
     </button>
     <!-- Add-Person Dialog -->
     <div class="modal modal-sm" :class="{active: showDialog}">
-      <a href="#close" class="modal-overlay" @click="closeDialog()"></a>
+      <a href="javascript:void(0)" class="modal-overlay" @click="closeDialog()"></a>
       <div class="modal-container">
-        <div class="modal-header"><a class="btn btn-clear float-right" href="#close" @click="closeDialog()"></a>
+        <div class="modal-header"><a class="btn btn-clear float-right" href="javascript:void(0)" @click="closeDialog()"></a>
           <div class="modal-title h5">Add Person</div>
         </div>
         <div class="modal-body">
@@ -85,7 +86,7 @@
                 width: 300,
                 text: person.first_name + ' ' + person.last_name,
                 align: 'center',
-                fontSize: 32,
+                fontSize: 36,
               }"
             />
           </v-group>
