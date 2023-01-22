@@ -7,14 +7,18 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <script src="{% static 'core/tailwindcss.3.2.4.min.js' %}"></script>
+  <link href="{% static 'core/spectre.0.5.9.min.css' %}" rel="stylesheet"">
+  <link href="{% static 'core/spectre-exp.0.5.9.min.css' %}" rel="stylesheet"">
+  <link href="{% static 'core/spectre-icons.0.5.9.min.css' %}" rel="stylesheet"">
+
+  <script src="{% static "core/vue.3.2.45.global.min.js" %}"></script>
+  <script src="{% static 'core/utils.js' %}"></script>
+
+  <script src="{% static "core/konva.8.4.0.min.js" %}"></script>
+  <script src="{% static "core/vue-konva.3.0.2.min.js" %}"></script>
 
   <script src="{% static 'core/cropper.1.5.13.min.js' %}"></script>
   <link href="{% static 'core/cropper.1.5.13.min.css' %}" rel="stylesheet"">
-
-  <script src="{% static "core/vue.3.2.45.global.min.js" %}"></script>
-  <script src="{% static "core/konva.8.4.0.min.js" %}"></script>
-  <script src="{% static "core/vue-konva.3.0.2.min.js" %}"></script>
 
   <title>The People Around You</title>
 </head>
@@ -28,6 +32,6 @@
   }
 </style>
 <body>
-  {% include "core/konva_app.html" with initial_persons=persons only %}
+  {% include "core/app.html" with initial_persons=persons only %}
 </body>
 </html>

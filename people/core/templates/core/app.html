@@ -1,4 +1,52 @@
 <div id="app">
+  <!-- Main fixed UI -->
+  <div
+    style="
+      position: fixed;
+      padding: 16px;
+      z-index: 9999;
+    "
+  >
+    <button
+      type="button"
+      @click="showDialog = true"
+    >
+      Add Person
+    </button>
+    <!-- Add-Person Dialog -->
+    <div class="modal modal-sm" :class="{active: showDialog}">
+      <a href="#close" class="modal-overlay" @click="closeDialog()"></a>
+      <div class="modal-container">
+        <div class="modal-header"><a class="btn btn-clear float-right" href="#close" @click="closeDialog()"></a>
+          <div class="modal-title h5">Add Person</div>
+        </div>
+        <div class="modal-body">
+          <div class="content">
+            <form>
+              <div class="form-group">
+                <label class="form-label" for="first_name">First Name</label>
+                <input class="form-input" id="first_name" v-model="firstName" type="text" placeholder="John">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="last_name">Last Name</label>
+                <input class="form-input" id="last_name"v-model="lastName" type="text" placeholder="Doe">
+              </div>
+            </form>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            :disabled="!dialogFormIsValid"
+            class="btn btn-primary"
+            @click="createPerson()"
+          >
+            Add
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Konva Stage -->
   <v-stage
     ref="stage"
     :config="configKonva"
@@ -23,6 +71,7 @@
             }"
           >
             <v-image
+              :key="person.image"
               :config="{
                 image: person.image,
               }"
@@ -47,41 +96,6 @@
 </div>
 
 <script>
-
-  const FALLBACK_AVATAR_URL = "https://i.imgur.com/cGonva6.png";
-
-  // https://docs.djangoproject.com/en/dev/ref/csrf/#ajax
-  function getCookie(name) {
-    var cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-      var cookies = document.cookie.split(";");
-      for (var i = 0; i < cookies.length; i++) {
-        var cookie = cookies[i].trim();
-        // Does this cookie string begin with the name we want?
-        if (cookie.substring(0, name.length + 1) === (name + "=")) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
-
-  function httpPost(url, payload) {
-    const csrftoken = getCookie('csrftoken');
-    const formData = new FormData();
-    for (const key of Object.keys(payload)) {
-      const value = payload[key];
-      formData.append(key, value);
-    }
-    return fetch(url, {
-      method: "POST",
-      headers: { "X-CSRFToken": csrftoken},
-      mode: 'same-origin',
-      body: formData,
-    });
-  }
-
   // Setup person list as passed from Django initially.
   const initialPersons = [
     {% for person in initial_persons %}
@@ -89,11 +103,9 @@
         id: {{ person.id }},
         first_name: "{{ person.first_name }}",
         last_name: "{{ person.last_name }}",
-        avatar: "{{ person.avatar }}" || FALLBACK_AVATAR_URL,
         x: {{ person.x }},
         y: {{ person.y }},
-        angle: {{ person.angle }},
-        scale: {{ person.scale }},
+        avatar: "{{ person.avatar }}",
         image: null,
       },
     {% endfor %}
@@ -107,28 +119,60 @@
     delimiters: ['[[', ']]'],
     data() {
       return {
+        // Konva
         clipFuncCircle: clipFuncCircle,
         configKonva: {
           width: window.innerWidth,
           height: window.innerHeight,
           draggable: true,
         },
+        // Main fixed UI
+        showDialog: false,
+        firstName: '',
+        lastName: '',
+        // Backend data
         persons: initialPersons,
       };
     },
+    computed: {
+      dialogFormIsValid() {
+        return (
+          !!this.firstName && !this.firstName.trim() == '' &&
+          !!this.lastName && !this.lastName.trim() == ''
+        );
+      },
+    },
     created() {
-      for (let person of this.persons) {
-        const image = new Image();
-        image.src = person.avatar;
-        image.onload = () => {
-          person.image = image;
-        };
-      };
+      this.loadPersonImages();
     },
     mounted() {
       this.setupZoom();
     },
     methods: {
+      resetDialog() {
+        this.firstName = '';
+        this.lastName = '';
+      },
+      closeDialog() {
+        this.showDialog = false;
+      },
+      createPerson() {
+        const vm = this;
+        const payload = {
+          first_name: this.firstName,
+          last_name: this.lastName,
+        };
+        httpPost('/persons/create', payload)
+          .then((response) => response.json())
+          .then((person) => {
+            function callback(person) {
+              vm.persons.push(person);
+            }
+            vm.loadPersonImage(person, callback);
+            vm.resetDialog();
+            vm.closeDialog();
+          });
+      },
       onPersonMoved(e, person) {
         const payload = {
           x: e.target.attrs.x,
@@ -136,8 +180,24 @@
         };
         httpPost('/persons/' + person.id, payload);
       },
-      addPerson() {
-        this.persons.push(Object.assign({}, this.persons[0]));
+      loadPersonImages() {
+        for (let person of this.persons) {
+          this.loadPersonImage(person);
+        };
+      },
+      loadPersonImage(person, callback = null) {
+        const image = new Image();
+        if (!person.avatar) {
+          return;
+        }
+        image.src = person.avatar;
+        image.onload = () => {
+          person.image = image;
+          if (callback) {
+            callback(person);
+          }
+          console.log('loaded img of person', person);
+        };
       },
       setupZoom() {
         const stage = this.$refs.stage.getStage();
@@ -176,10 +236,8 @@
       },
     }
   });
-
   app.use(VueKonva);
   app.mount('#app');
-
 </script>
 
 <style>

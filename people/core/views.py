@@ -1,8 +1,8 @@
 import os
 from django import forms
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
+from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
@@ -10,13 +10,20 @@ from django.views.decorators.http import require_http_methods
 from people.core.models import Person
 
 
+FALLBACK_AVATAR_URL = "https://i.imgur.com/cGonva6.png"
+
+
+def _get_absolute_avatar_url(request, person):
+    if not person.avatar.name:
+        return FALLBACK_AVATAR_URL
+    return request.build_absolute_uri(person.avatar.url)
+
+
 def _get_renderable_persons(request, persons=None):
     if not persons:
         persons = Person.objects.filter(created_by=request.user)
     for person in persons:
-        if not person.avatar.name:
-            continue
-        person.avatar = request.build_absolute_uri(person.avatar.url)
+        person.avatar = _get_absolute_avatar_url(request, person)
     return persons
 
 
@@ -30,42 +37,44 @@ def home(request):
 class PersonForm(forms.ModelForm):
     class Meta:
         model = Person
-        fields = ("first_name", "last_name", "avatar")
+        fields = (
+            "first_name",
+            "last_name",
+            # "avatar",
+        )
 
 
 @login_required
-@require_http_methods(("GET", "POST"))
+@require_http_methods(("POST",))
 def create_person(request):
     from pprint import pprint
 
     pprint(request.POST)
     pprint(request.FILES)
 
-    if request.method == "GET":
-        return render(request, "core/_create_person_dialog.html", {})
+    form = PersonForm(request.POST)
+    person = form.save(commit=False)
 
-    elif request.method == "POST":
-        form = PersonForm(request.POST)
-        if not form.is_valid():
-            return render(
-                request, "core/_create_person_dialog.html", {"error_form": form}
-            )
+    # avatar_file = request.FILES["avatar"]
+    # avatar_filepath = os.path.join(settings.MEDIA_ROOT, "avatars", avatar_file.name)
+    # with open(avatar_filepath) as f:
+    #     f.write(avatar_file)
+    # person.avatar = avatar_filepath
 
-        person = form.save(commit=False)
+    person.created_by = request.user
+    person.save()
 
-        avatar_file = request.FILES["avatar"]
-        avatar_filepath = os.path.join(settings.MEDIA_ROOT, "avatars", avatar_file.name)
-        with open(avatar_filepath) as f:
-            f.write(avatar_file)
-        person.avatar = avatar_filepath
-
-        person.created_by = request.user
-        person.save()
-
-        persons = _get_renderable_persons(request, persons=[person])
-        return render(request, "core/_create_person_dialog.html", {"persons": persons})
-
-    return redirect("home")
+    return JsonResponse(
+        {
+            "id": person.id,
+            "first_name": person.first_name,
+            "last_name": person.last_name,
+            "x": person.x,
+            "y": person.y,
+            "avatar": _get_absolute_avatar_url(request, person),
+            "image": None,
+        }
+    )
 
 
 @login_required
