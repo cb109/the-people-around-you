@@ -1,27 +1,72 @@
 <div id="app">
-  <v-stage
-    ref="stage"
-    :config="configKonva"
-  >
-    <v-layer ref="layer">
-    <v-group
-      v-for="person in persons"
-      :key="person.first_name"
-      :config="{draggable: true, clipFunc: clipFuncCircle}"
+  <div>
+    <v-stage
+      ref="stage"
+      :config="configKonva"
     >
-      <v-image :config="{image: person.image}" />
-    </v-group>
-  </v-layer>
+      <v-layer ref="layer">
+      <v-group
+        v-for="person in persons"
+        :key="person.first_name"
+        :config="{
+          clipFunc: clipFuncCircle,
+          draggable: true,
+          x: person.x,
+          y: person.y,
+        }"
+        @dragend="onPersonMoved($event, person)"
+        @touchend="onPersonMoved($event, person)"
+      >
+        <v-image :config="{image: person.image}" />
+      </v-group>
+    </v-layer>
+  </div>
 </div>
 
 <script>
+
+  const FALLBACK_AVATAR_URL = "https://img.icons8.com/wired/240/circled-user.png";
+
+  // https://docs.djangoproject.com/en/dev/ref/csrf/#ajax
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      var cookies = document.cookie.split(";");
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) === (name + "=")) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function httpPost(url, payload) {
+    const csrftoken = getCookie('csrftoken');
+    const formData = new FormData();
+    for (const key of Object.keys(payload)) {
+      const value = payload[key];
+      formData.append(key, value);
+    }
+    return fetch(url, {
+      method: "POST",
+      headers: { "X-CSRFToken": csrftoken},
+      mode: 'same-origin',
+      body: formData,
+    });
+  }
+
+  // Setup person list as passed from Django initially.
   const initialPersons = [
-    {% for person in persons %}
+    {% for person in initial_persons %}
       {
         id: {{ person.id }},
         first_name: "{{ person.first_name }}",
         last_name: "{{ person.last_name }}",
-        avatar: "{{ person.avatar }}",
+        avatar: "{{ person.avatar }}" || FALLBACK_AVATAR_URL,
         x: {{ person.x }},
         y: {{ person.y }},
         angle: {{ person.angle }},
@@ -36,6 +81,7 @@
   }
 
   const app = Vue.createApp({
+    delimiters: ['[[', ']]'],
     data() {
       return {
         clipFuncCircle: clipFuncCircle,
@@ -60,6 +106,13 @@
       this.setupZoom();
     },
     methods: {
+      onPersonMoved(e, person) {
+        const payload = {
+          x: e.target.attrs.x,
+          y: e.target.attrs.y,
+        };
+        httpPost('/persons/' + person.id, payload);
+      },
       addPerson() {
         this.persons.push(Object.assign({}, this.persons[0]));
       },

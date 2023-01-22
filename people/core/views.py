@@ -75,8 +75,8 @@ def update_person(request, person_id: int):
 
     person.x = float(request.POST["x"])
     person.y = float(request.POST["y"])
-    person.angle = float(request.POST["angle"])
-    person.scale = float(request.POST["scale"])
+    # person.angle = float(request.POST["angle"])
+    # person.scale = float(request.POST["scale"])
     person.save()
 
     return HttpResponse()
