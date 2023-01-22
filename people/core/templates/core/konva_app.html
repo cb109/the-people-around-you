@@ -1,31 +1,54 @@
 <div id="app">
-  <div>
-    <v-stage
-      ref="stage"
-      :config="configKonva"
-    >
-      <v-layer ref="layer">
-      <v-group
-        v-for="person in persons"
-        :key="person.first_name"
-        :config="{
-          clipFunc: clipFuncCircle,
-          draggable: true,
-          x: person.x,
-          y: person.y,
-        }"
-        @dragend="onPersonMoved($event, person)"
-        @touchend="onPersonMoved($event, person)"
+  <v-stage
+    ref="stage"
+    :config="configKonva"
+  >
+    <v-layer ref="layer">
+      <template
+        v-for="(person, personIndex) in persons"
+        :key="'person-' + personIndex"
       >
-        <v-image :config="{image: person.image}" />
-      </v-group>
+        <v-group
+          :config="{
+            draggable: true,
+            x: person.x,
+            y: person.y,
+          }"
+          @dragend="onPersonMoved($event, person)"
+          @touchend="onPersonMoved($event, person)"
+        >
+          <v-group
+            :config="{
+              clipFunc: clipFuncCircle,
+            }"
+          >
+            <v-image
+              :config="{
+                image: person.image,
+              }"
+            />
+          </v-group>
+          <v-group>
+            <v-text
+              :config="{
+                x: 0,
+                y: 320,
+                width: 300,
+                text: person.first_name + ' ' + person.last_name,
+                align: 'center',
+                fontSize: 32,
+              }"
+            />
+          </v-group>
+        </v-group>
+      </template>
     </v-layer>
-  </div>
+  </v-stage>
 </div>
 
 <script>
 
-  const FALLBACK_AVATAR_URL = "https://img.icons8.com/wired/240/circled-user.png";
+  const FALLBACK_AVATAR_URL = "https://i.imgur.com/cGonva6.png";
 
   // https://docs.djangoproject.com/en/dev/ref/csrf/#ajax
   function getCookie(name) {
