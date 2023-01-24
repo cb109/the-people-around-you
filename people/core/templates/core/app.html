@@ -69,6 +69,7 @@
       >
         <v-group
           :config="{
+            id: person.id,
             draggable: true,
             x: person.x,
             y: person.y,
@@ -100,6 +101,7 @@
                 align: 'center',
                 fontSize: 36,
                 name: 'person-name',
+                fill: isSelectedPerson(person) ? 'red' : 'black',
               }"
             />
           </v-group>
@@ -140,6 +142,7 @@
           height: window.innerHeight,
           draggable: true,
         },
+        transformer: {nodes: (_) => []},
         // Main fixed UI
         showDialog: false,
         firstName: '',
@@ -155,6 +158,20 @@
           !!this.lastName && !this.lastName.trim() == ''
         );
       },
+      selectedNodes: {
+        get() {
+          if (!this.transformer) {
+            return [];
+          }
+          return this.transformer.nodes();
+        },
+        set(nodes) {
+          if (!this.transformer) {
+            return;
+          }
+          this.transformer.nodes(nodes);
+        },
+      },
     },
     created() {
       this.loadPersonImages();
@@ -164,6 +181,14 @@
       this.setupSelection();
     },
     methods: {
+      isSelectedPerson(person) {
+        for (const node of this.selectedNodes) {
+          if (node.attrs.id == person.id) {
+            return true;
+          }
+        }
+        return false;
+      },
       resetDialog() {
         this.firstName = '';
         this.lastName = '';
@@ -256,13 +281,15 @@
         const stage = this.getStage();
         const layer = this.$refs.layer.getNode();
 
-        const tr = new Konva.Transformer({
+        this.transformer = new Konva.Transformer({
           rotateEnabled: false,
           resizeEnabled: false,
           flipEnabled: false,
         });
-        tr.nodes([]);
-        layer.add(tr);
+        layer.add(this.transformer);
+        this.selectedNodes = [];
+
+        const vm = this;
 
         // add a new feature, lets add ability to draw selection rectangle
         const selectionRectangle = new Konva.Rect({
@@ -321,7 +348,7 @@
           const selected = shapes.filter((shape) =>
             Konva.Util.haveIntersection(box, shape.getClientRect())
           );
-          tr.nodes(selected);
+          vm.selectedNodes = selected;
         });
 
         // clicks should select/deselect shapes
@@ -333,7 +360,7 @@
 
           // if click on empty area - remove all selections
           if (e.target === stage) {
-            tr.nodes([]);
+            vm.selectedNodes = [];
             return;
           }
 
@@ -350,23 +377,23 @@
 
           // do we pressed shift or ctrl?
           const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
-          const isSelected = tr.nodes().indexOf(group) >= 0;
+          const isSelected = vm.selectedNodes.indexOf(group) >= 0;
 
           if (!metaPressed && !isSelected) {
             // if no key pressed and the node is not selected
             // select just one
-            tr.nodes([group]);
+            vm.selectedNodes = [group];
           } else if (metaPressed && isSelected) {
             // if we pressed keys and node was selected
             // we need to remove it from selection:
-            const nodes = tr.nodes().slice(); // use slice to have new copy of array
+            const nodes = vm.selectedNodes.slice(); // use slice to have new copy of array
             // remove node from array
             nodes.splice(nodes.indexOf(group), 1);
-            tr.nodes(nodes);
+            vm.selectedNodes = nodes;
           } else if (metaPressed && !isSelected) {
             // add the node into selection
-            const nodes = tr.nodes().concat([group]);
-            tr.nodes(nodes);
+            const nodes = vm.selectedNodes.concat([group]);
+            vm.selectedNodes = nodes;
           }
         });
       },
