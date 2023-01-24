@@ -16,13 +16,6 @@
       >
         Add Person
       </button>
-      <!-- <button
-        type="button"
-        class="btn btn-lg btn-secondary"
-        @click="stageConfig.draggable = !stageConfig.draggable"
-      >
-        Mode: <span v-if="stageConfig.draggable">Pan</span><span v-else>Select</span>
-      </button> -->
     </div>
     <!-- Add-Person Dialog -->
     <div class="modal modal-sm" :class="{active: showDialog}">
@@ -73,10 +66,13 @@
             draggable: isSelectedPerson(person),
             x: person.x,
             y: person.y,
+            scaleX: person.scale,
+            scaleY: person.scale,
             name: 'person-group',
           }"
-          @dragend="onPersonMoved($event, person)"
-          @touchend="onPersonMoved($event, person)"
+          @dragend="onPersonTransformed($event, person)"
+          @touchend="onPersonTransformed($event, person)"
+          @transformend="onPersonTransformed($event, person)"
         >
           <v-group
             :config="{
@@ -116,13 +112,14 @@
   const initialPersons = [
     {% for person in initial_persons %}
       {
-        id: {{ person.id }},
+        avatar: "{{ person.avatar }}",
         first_name: "{{ person.first_name }}",
+        id: {{ person.id }},
+        image: null,
         last_name: "{{ person.last_name }}",
+        scale: {{ person.scale }},
         x: {{ person.x }},
         y: {{ person.y }},
-        avatar: "{{ person.avatar }}",
-        image: null,
       },
     {% endfor %}
   ];
@@ -213,10 +210,11 @@
             vm.closeDialog();
           });
       },
-      onPersonMoved(e, person) {
+      onPersonTransformed(e, person) {
         const payload = {
           x: e.target.attrs.x,
           y: e.target.attrs.y,
+          scale: e.target.attrs.scaleX,
         };
         httpPost('/persons/' + person.id, payload);
       },
@@ -283,8 +281,10 @@
 
         this.transformer = new Konva.Transformer({
           rotateEnabled: false,
-          resizeEnabled: false,
           flipEnabled: false,
+          resizeEnabled: true,
+          centeredScaling: false,
+          enabledAnchors: ['top-right', 'top-left', 'bottom-right', 'bottom-left'],
         });
         layer.add(this.transformer);
         this.selectedNodes = [];

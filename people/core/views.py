@@ -66,13 +66,14 @@ def create_person(request):
 
     return JsonResponse(
         {
-            "id": person.id,
+            "avatar": _get_absolute_avatar_url(request, person),
             "first_name": person.first_name,
+            "id": person.id,
+            "image": None,
             "last_name": person.last_name,
+            "scale": person.scale,
             "x": person.x,
             "y": person.y,
-            "avatar": _get_absolute_avatar_url(request, person),
-            "image": None,
         }
     )
 
@@ -84,8 +85,7 @@ def update_person(request, person_id: int):
 
     person.x = float(request.POST["x"])
     person.y = float(request.POST["y"])
-    # person.angle = float(request.POST["angle"])
-    # person.scale = float(request.POST["scale"])
+    person.scale = float(request.POST["scale"])
     person.save()
 
     return HttpResponse()
