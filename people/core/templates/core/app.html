@@ -7,13 +7,23 @@
       z-index: 9999;
     "
   >
-    <button
-      type="button"
-      class="btn btn-lg btn-primary"
-      @click="showDialog = true"
-    >
-      Add Person
-    </button>
+    <div>
+      <button
+        type="button"
+        class="btn btn-lg btn-primary"
+        style="margin-right: 8px"
+        @click="showDialog = true"
+      >
+        Add Person
+      </button>
+      <button
+        type="button"
+        class="btn btn-lg btn-secondary"
+        @click="stageConfig.draggable = !stageConfig.draggable"
+      >
+        Mode: <span v-if="stageConfig.draggable">Pan</span><span v-else>Select</span>
+      </button>
+    </div>
     <!-- Add-Person Dialog -->
     <div class="modal modal-sm" :class="{active: showDialog}">
       <a href="javascript:void(0)" class="modal-overlay" @click="closeDialog()"></a>
@@ -50,7 +60,7 @@
   <!-- Konva Stage -->
   <v-stage
     ref="stage"
-    :config="configKonva"
+    :config="stageConfig"
   >
     <v-layer ref="layer">
       <template
@@ -62,6 +72,7 @@
             draggable: true,
             x: person.x,
             y: person.y,
+            name: 'person-group',
           }"
           @dragend="onPersonMoved($event, person)"
           @touchend="onPersonMoved($event, person)"
@@ -75,6 +86,7 @@
               :key="person.image"
               :config="{
                 image: person.image,
+                name: 'person-image',
               }"
             />
           </v-group>
@@ -87,6 +99,7 @@
                 text: person.first_name + ' ' + person.last_name,
                 align: 'center',
                 fontSize: 36,
+                name: 'person-name',
               }"
             />
           </v-group>
@@ -122,7 +135,7 @@
       return {
         // Konva
         clipFuncCircle: clipFuncCircle,
-        configKonva: {
+        stageConfig: {
           width: window.innerWidth,
           height: window.innerHeight,
           draggable: true,
@@ -148,6 +161,7 @@
     },
     mounted() {
       this.setupZoom();
+      this.setupSelection();
     },
     methods: {
       resetDialog() {
@@ -200,8 +214,11 @@
           console.log('loaded img of person', person);
         };
       },
+      getStage() {
+        return this.$refs.stage.getStage();
+      },
       setupZoom() {
-        const stage = this.$refs.stage.getStage();
+        const stage = this.getStage();
         const scaleBy = 1.12;
         stage.on('wheel', (e) => {
           // stop default scrolling
@@ -233,6 +250,124 @@
             y: pointer.y - mousePointTo.y * newScale,
           };
           stage.position(newPos);
+        });
+      },
+      setupSelection() {
+        const stage = this.getStage();
+        const layer = this.$refs.layer.getNode();
+
+        const tr = new Konva.Transformer({
+          rotateEnabled: false,
+          resizeEnabled: false,
+          flipEnabled: false,
+        });
+        tr.nodes([]);
+        layer.add(tr);
+
+        // add a new feature, lets add ability to draw selection rectangle
+        const selectionRectangle = new Konva.Rect({
+          fill: 'rgba(0, 0, 255, 0.5)',
+          visible: false,
+        });
+        layer.add(selectionRectangle);
+
+        let x1, y1, x2, y2;
+        stage.on('mousedown touchstart', (e) => {
+          // do nothing if we mousedown on any shape
+          if (e.target !== stage) {
+            return;
+          }
+          e.evt.preventDefault();
+          x1 = stage.getPointerPosition().x;
+          y1 = stage.getPointerPosition().y;
+          x2 = stage.getPointerPosition().x;
+          y2 = stage.getPointerPosition().y;
+
+          selectionRectangle.visible(true);
+          selectionRectangle.width(0);
+          selectionRectangle.height(0);
+        });
+
+        stage.on('mousemove touchmove', (e) => {
+          // do nothing if we didn't start selection
+          if (!selectionRectangle.visible()) {
+            return;
+          }
+          e.evt.preventDefault();
+          x2 = stage.getPointerPosition().x;
+          y2 = stage.getPointerPosition().y;
+
+          selectionRectangle.setAttrs({
+            x: Math.min(x1, x2),
+            y: Math.min(y1, y2),
+            width: Math.abs(x2 - x1),
+            height: Math.abs(y2 - y1),
+          });
+        });
+
+        stage.on('mouseup touchend', (e) => {
+          // do nothing if we didn't start selection
+          if (!selectionRectangle.visible()) {
+            return;
+          }
+          e.evt.preventDefault();
+          // update visibility in timeout, so we can check it in click event
+          setTimeout(() => {
+            selectionRectangle.visible(false);
+          });
+
+          const shapes = stage.find('.rect');
+          const box = selectionRectangle.getClientRect();
+          const selected = shapes.filter((shape) =>
+            Konva.Util.haveIntersection(box, shape.getClientRect())
+          );
+          tr.nodes(selected);
+        });
+
+        // clicks should select/deselect shapes
+        stage.on('click tap', function (e) {
+          // if we are selecting with rect, do nothing
+          if (selectionRectangle.visible()) {
+            return;
+          }
+
+          // if click on empty area - remove all selections
+          if (e.target === stage) {
+            tr.nodes([]);
+            return;
+          }
+
+          // Allow only specific elements as targets and get their
+          // parent group as the actual thing we toggle the selection
+          // on.
+          let group = null;
+          if (e.target.hasName('person-image') || e.target.hasName('person-name')) {
+            group = e.target.getParent().getParent();
+          }
+          if (!group) {
+            return;
+          }
+
+          // do we pressed shift or ctrl?
+          const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
+          const isSelected = tr.nodes().indexOf(group) >= 0;
+
+          if (!metaPressed && !isSelected) {
+            // if no key pressed and the node is not selected
+            // select just one
+            tr.nodes([group]);
+          } else if (metaPressed && isSelected) {
+            // if we pressed keys and node was selected
+            // we need to remove it from selection:
+            const nodes = tr.nodes().slice(); // use slice to have new copy of array
+            // remove node from array
+            nodes.splice(nodes.indexOf(group), 1);
+            tr.nodes(nodes);
+          } else if (metaPressed && !isSelected) {
+            // add the node into selection
+            const nodes = tr.nodes().concat([group]);
+            tr.nodes(nodes);
+          }
         });
       },
     }
