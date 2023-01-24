@@ -139,6 +139,7 @@
           height: window.innerHeight,
           draggable: true,
         },
+        zoom: 1.0,
         transformer: {nodes: (_) => []},
         // Main fixed UI
         showDialog: false,
@@ -208,6 +209,7 @@
             vm.loadPersonImage(person, callback);
             vm.resetDialog();
             vm.closeDialog();
+            // TODO: Select person
           });
       },
       onPersonTransformed(e, person) {
@@ -234,15 +236,16 @@
           if (callback) {
             callback(person);
           }
-          console.log('loaded img of person', person);
         };
       },
       getStage() {
         return this.$refs.stage.getStage();
       },
       setupZoom() {
+        const vm = this;
         const stage = this.getStage();
         const scaleBy = 1.12;
+
         stage.on('wheel', (e) => {
           // stop default scrolling
           e.evt.preventDefault();
@@ -264,32 +267,72 @@
             direction = -direction;
           }
 
-          var newScale = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+          vm.zoom  = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
 
-          stage.scale({ x: newScale, y: newScale });
+          stage.scale({ x: vm.zoom , y: vm.zoom  });
 
           var newPos = {
-            x: pointer.x - mousePointTo.x * newScale,
-            y: pointer.y - mousePointTo.y * newScale,
+            x: pointer.x - mousePointTo.x * vm.zoom ,
+            y: pointer.y - mousePointTo.y * vm.zoom ,
           };
           stage.position(newPos);
         });
       },
       setupSelection() {
+        const vm = this;
         const stage = this.getStage();
         const layer = this.$refs.layer.getNode();
+
+        const WIDTH_STEPS = [
+          300, 450, 600, 750, 900, 1050, 1200
+        ]
+        const MIN_WIDTH = WIDTH_STEPS[0];
+        const MAX_WIDTH = 2400;
 
         this.transformer = new Konva.Transformer({
           rotateEnabled: false,
           flipEnabled: false,
           resizeEnabled: true,
-          centeredScaling: false,
-          enabledAnchors: ['top-right', 'top-left', 'bottom-right', 'bottom-left'],
+          // centeredScaling: true,
+          enabledAnchors: [
+            // 'top-left',
+            // 'top-right',
+            // 'bottom-left',
+            'bottom-right',
+          ],
+          boundBoxFunc: function (oldBoundBox, newBoundBox) {
+            // "boundBox" is an object with
+            // x, y, width, height and rotation properties
+            // transformer tool will try to fit nodes into that box
+
+            if (
+              Math.abs(newBoundBox.width) < MIN_WIDTH * vm.zoom ||
+              Math.abs(newBoundBox.width) > MAX_WIDTH * vm.zoom
+            ) {
+              return oldBoundBox;
+            }
+
+            for (let i = 0; i < WIDTH_STEPS.length; i++) {
+              let previousStep = MIN_WIDTH * vm.zoom;
+              if (i > 0) {
+                previousStep = WIDTH_STEPS[i - 1] * vm.zoom;
+              }
+              const step = WIDTH_STEPS[i] * vm.zoom;
+              if (newBoundBox.width >= previousStep && newBoundBox.width <= step) {
+                var bb = Object.assign({}, oldBoundBox);
+                var ratio = newBoundBox.width / newBoundBox.height;
+                var newWidth = (step - newBoundBox.width) <= (previousStep - newBoundBox.width) ? step : previousStep;
+                bb.width = newWidth * ratio;
+                bb.height = newWidth;
+                return bb;
+              }
+            }
+
+            return newBoundBox;
+          },
         });
         layer.add(this.transformer);
         this.selectedNodes = [];
-
-        const vm = this;
 
         // // add a new feature, lets add ability to draw selection rectangle
         // const selectionRectangle = new Konva.Rect({
