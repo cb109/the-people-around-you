@@ -149,6 +149,11 @@
     ctx.arc(150, 150, 150, 0, Math.PI * 2, false);
   }
 
+  // https://github.com/konvajs/konva/issues/1039
+  const MOUSE_BUTTON_LEFT = 0;
+  const MOUSE_BUTTON_MIDDLE = 1;
+  Konva.dragButtons = [MOUSE_BUTTON_LEFT];
+
   const app = Vue.createApp({
     delimiters: ['[[', ']]'],
     data() {
@@ -158,7 +163,7 @@
         stageConfig: {
           width: window.innerWidth,
           height: window.innerHeight,
-          draggable: true,
+          draggable: false,
         },
         zoom: 1.0,
         transformer: {nodes: (_) => []},
@@ -209,6 +214,7 @@
       stage.x(stageX);
       stage.y(stageY);
 
+      this.setupStageDragging();
       this.setupZoom();
       this.setupSelection();
     },
@@ -321,6 +327,14 @@
       },
       getStage() {
         return this.$refs.stage.getStage();
+      },
+      setupStageDragging() {
+        const stage = this.getStage();
+        stage.on('mousedown', (e) => {
+          if (e.evt.button === MOUSE_BUTTON_MIDDLE) {
+            stage.startDrag();
+          }
+        });
       },
       setupZoom() {
         const vm = this;
