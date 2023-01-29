@@ -280,7 +280,6 @@
               avatar: croppedAvatarBlob,
               avatar_filename: vm.imageOriginalFilename,
             };
-              vm.persons.push(person);
             httpPost('/persons/create', payload)
               .then((response) => response.json())
               .then((person) => {
