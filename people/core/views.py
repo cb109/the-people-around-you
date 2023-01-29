@@ -20,6 +20,8 @@ FALLBACK_AVATAR_URL = "https://i.imgur.com/cGonva6.png"
 def _get_absolute_avatar_url(request, person):
     if not person.avatar.name:
         return FALLBACK_AVATAR_URL
+    print("person.avatar.name", person.avatar.name)
+    print("person.avatar.url", person.avatar.url)
     return request.build_absolute_uri(person.avatar.url)
 
 
