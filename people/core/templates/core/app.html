@@ -74,6 +74,7 @@
   <v-stage
     ref="stage"
     :config="stageConfig"
+    @dragend="onStageDragEnd"
   >
     <v-layer ref="layer">
       <template
@@ -159,7 +160,7 @@
           height: window.innerHeight,
           draggable: true,
         },
-        zoom: localStorage.getItem('zoom') || 1.0,
+        zoom: 1.0,
         transformer: {nodes: (_) => []},
         // cropperjs
         cropper: null,
@@ -198,12 +199,29 @@
       this.loadPersonImages();
     },
     mounted() {
-      this.getStage().scale({x: this.zoom , y: this.zoom});
+      // Apply remembered stage zoom and position.
+      this.zoom = localStorage.getItem('stage.zoom') || 1.0;
+      const stageX = (localStorage.getItem('stage.x') || 0)  / this.zoom;
+      const stageY = (localStorage.getItem('stage.y') || 0)  / this.zoom;
+
+      const stage = this.getStage();
+      stage.scale({x: this.zoom , y: this.zoom});
+      stage.x(stageX);
+      stage.y(stageY);
 
       this.setupZoom();
       this.setupSelection();
     },
     methods: {
+      onStageDragEnd(event) {
+        this.rememberStageZoomAndPosition();
+      },
+      rememberStageZoomAndPosition() {
+        const stage = this.getStage();
+        localStorage.setItem('stage.zoom', this.zoom);
+        localStorage.setItem('stage.x', stage.x() * this.zoom);
+        localStorage.setItem('stage.y', stage.y() * this.zoom);
+      },
       onImageSelected(event) {
         if (this.cropper) {
           this.cropper.destroy();
@@ -332,8 +350,8 @@
           }
 
           vm.zoom  = direction > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+          vm.rememberStageZoomAndPosition();
           stage.scale({x: vm.zoom , y: vm.zoom});
-          localStorage.setItem('zoom', vm.zoom);
 
           var newPos = {
             x: pointer.x - mousePointTo.x * vm.zoom ,
