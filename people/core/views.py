@@ -78,7 +78,7 @@ def create_person(request):
     # Create normalized size version.
     normalized_filepath = avatar_filepath + "_300x300.png"
     img = Image.open(avatar_filepath)
-    img.resize((300, 300), Image.LANCZOS)
+    img = img.resize((300, 300), Image.LANCZOS)
     img.save(normalized_filepath, "PNG")
 
     media_relative_filepath = os.path.join(
