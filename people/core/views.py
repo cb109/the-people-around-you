@@ -81,7 +81,11 @@ def create_person(request):
     img.thumbnail((300, 300), Image.LANCZOS)
     img.save(normalized_filepath, "PNG")
 
-    person.avatar = normalized_filepath
+    media_relative_filepath = os.path.join(
+        "avatars", os.path.basename(normalized_filepath)
+    )
+    person.avatar = media_relative_filepath
+
     person.created_by = request.user
     person.save()
 
