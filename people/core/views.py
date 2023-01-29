@@ -1,11 +1,15 @@
 import os
+import random
+import string
 from django import forms
 from django.contrib.auth.decorators import login_required
+from django.conf import settings
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import redirect
 from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
+from PIL import Image
 
 from people.core.models import Person
 
@@ -25,6 +29,10 @@ def _get_renderable_persons(request, persons=None):
     for person in persons:
         person.avatar = _get_absolute_avatar_url(request, person)
     return persons
+
+
+def _get_random_string(length: int) -> str:
+    return "".join(random.choice(string.ascii_lowercase) for _ in range(length))
 
 
 @login_required
@@ -47,20 +55,31 @@ class PersonForm(forms.ModelForm):
 @login_required
 @require_http_methods(("POST",))
 def create_person(request):
-    from pprint import pprint
-
-    pprint(request.POST)
-    pprint(request.FILES)
-
     form = PersonForm(request.POST)
     person = form.save(commit=False)
 
-    # avatar_file = request.FILES["avatar"]
-    # avatar_filepath = os.path.join(settings.MEDIA_ROOT, "avatars", avatar_file.name)
-    # with open(avatar_filepath) as f:
-    #     f.write(avatar_file)
-    # person.avatar = avatar_filepath
+    prefix = _get_random_string(10)
+    avatar_file = request.FILES["avatar"]
+    avatar_filename = request.POST["avatar_filename"]
+    avatar_filepath = os.path.join(
+        settings.MEDIA_ROOT,
+        "avatars",
+        f"{prefix}.{avatar_filename}",
+    )
+    try:
+        os.makedirs(os.path.dirname(avatar_filepath))
+    except FileExistsError:
+        pass
+    with open(avatar_filepath, "wb") as f:
+        f.write(avatar_file.read())
 
+    # Create normalized size version.
+    normalized_filepath = avatar_filepath + "_300x300.png"
+    img = Image.open(avatar_filepath)
+    img.thumbnail((300, 300), Image.Resampling.LANCZOS)
+    img.save(normalized_filepath, "PNG")
+
+    person.avatar = normalized_filepath
     person.created_by = request.user
     person.save()
 
