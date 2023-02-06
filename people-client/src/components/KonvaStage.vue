@@ -62,6 +62,8 @@
 <script>
   import Konva from 'konva';
 
+  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+
   function clipFuncCircle (ctx) {
     ctx.arc(150, 150, 150, 0, Math.PI * 2, false);
   }
