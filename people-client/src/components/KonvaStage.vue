@@ -11,7 +11,7 @@
       >
         <v-group
           :config="{
-            id: person.id,
+            id: String(person.id),
             draggable: isSelectedPerson(person),
             x: person.x,
             y: person.y,
