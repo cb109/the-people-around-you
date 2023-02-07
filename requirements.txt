@@ -7,6 +7,10 @@
 asgiref==3.5.2
     # via django
 django==4.1.2
+    # via
+    #   -r requirements.in
+    #   django-cors-headers
+django-cors-headers==3.13.0
     # via -r requirements.in
 pillow==9.2.0
     # via -r requirements.in

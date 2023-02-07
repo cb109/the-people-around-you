@@ -1,22 +1,36 @@
 <template>
-  <v-app-bar flat class="transparent">
-    <v-app-bar-title>
-      <v-btn
-        disabled
-        variant="flat"
-        color="primary"
-        prepend-icon="mdi-plus"
-        size="large"
-        rounded
-      >Add Person</v-btn>
-    </v-app-bar-title>
-  </v-app-bar>
+  <div>
+    <v-app-bar flat class="transparent">
+      <v-app-bar-title>
+        <v-btn
+          variant="flat"
+          color="primary"
+          prepend-icon="mdi-plus"
+          size="large"
+          rounded
+          @click="showAddPersonDialog = !showAddPersonDialog"
+        >Add Person</v-btn>
+        {{showAddPersonDialog}}
+      </v-app-bar-title>
+    </v-app-bar>
+    <AddPersonDialog :show="showAddPersonDialog" />
+  </div>
 </template>
 
-<script setup>
-  //
-</script>
+<script>
+  import AddPersonDialog from '@/components/AddPersonDialog.vue'
 
+  export default {
+    components: {
+      AddPersonDialog,
+    },
+    data() {
+      return {
+        showAddPersonDialog: false,
+      };
+    },
+  }
+</script>
 
 <style>
 .transparent {

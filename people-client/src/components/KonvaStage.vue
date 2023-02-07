@@ -68,111 +68,55 @@
     ctx.arc(150, 150, 150, 0, Math.PI * 2, false);
   }
 
-  const initialPersons = [
-    {
-      avatar: "http://people.cbuelter.de/media/avatars/zxbpyvbugi.christoph.jpg_300x300.png",
-      first_name: "Christoph",
-      id: 8,
-      image: null,
-      last_name: "Bülter",
-      scale: 2.5280898876404474,
-      x: -121.91446731865958,
-      y: 195.11640063997987,
-    },
-
-    {
-      avatar: "http://people.cbuelter.de/media/avatars/afudkzfdkl.britta.png_300x300.png",
-      first_name: "Britta",
-      id: 9,
-      image: null,
-      last_name: "Thieme",
-      scale: 1.6853932584269653,
-      x: 724.0974362429704,
-      y: 248.40131391074578,
-    },
-
-    {
-      avatar: "http://people.cbuelter.de/media/avatars/pgnbwwagkk.mama%20papa%20malle%202022.jpg_300x300.png",
-      first_name: "Rudolf",
-      id: 10,
-      image: null,
-      last_name: "Bülter",
-      scale: 1.264044943820224,
-      x: 38.41388903501527,
-      y: -299.6573387751841,
-    },
-
-    {
-      avatar: "http://people.cbuelter.de/media/avatars/sntpptpotz.mama%20papa%20malle%202022.jpg_300x300.png",
-      first_name: "Britta",
-      id: 11,
-      image: null,
-      last_name: "Mey-Bülter",
-      scale: 1.2640449438202244,
-      x: 495.18514465568273,
-      y: -206.83409320716603,
-    },
-
-    {
-      avatar: "http://people.cbuelter.de/media/avatars/dfvkkfkpcl.WhatsApp%20Image%202023-01-28%20at%2014.52.16.jpeg_300x300.png",
-      first_name: "Sophie",
-      id: 12,
-      image: null,
-      last_name: "Bülter",
-      scale: 1.2640449438202246,
-      x: -426.08143845468214,
-      y: -133.06120110105667,
-    },
-
-    {
-      avatar: "http://people.cbuelter.de/media/avatars/eisvznwkyl.55963736_939527072884414_4055769950126604288_n.jpg_300x300.png",
-      first_name: "Philipp",
-      id: 13,
-      image: null,
-      last_name: "Bülter",
-      scale: 1.2640449438202246,
-      x: -566.2658943911654,
-      y: 357.24160415004906,
-    },
-
-    {
-      avatar: "http://people.cbuelter.de/media/avatars/ttnmjcdzsj.WhatsApp%20Image%202023-01-27%20at%2021.28.25.jpeg_300x300.png",
-      first_name: "Philo",
-      id: 14,
-      image: null,
-      last_name: "Bär",
-      scale: 0.8426966292134812,
-      x: 643.7540890515979,
-      y: 887.8674123703842,
-    },
-
-    {
-      avatar: "http://people.cbuelter.de/media/avatars/pqgsixzabi.nicobauerschaefer.jpg_300x300.png",
-      first_name: "Nico",
-      id: 15,
-      image: null,
-      last_name: "Bauerschäfer",
-      scale: 0.8292150002808071,
-      x: 1498.6521024756817,
-      y: -356.6298321416073,
-    },
-
-    {
-      avatar: "http://people.cbuelter.de/media/avatars/dgvaduidrm.partner_Mark-Spindler.jpg_300x300.png",
-      first_name: "Mark",
-      id: 16,
-      image: null,
-      last_name: "Spindler",
-      scale: 0.8292150002808062,
-      x: 1859.9671206032554,
-      y: -350.9948757986852,
-    },
-];
-
   // https://github.com/konvajs/konva/issues/1039
   const MOUSE_BUTTON_LEFT = 0;
   const MOUSE_BUTTON_MIDDLE = 1;
   Konva.dragButtons = [MOUSE_BUTTON_LEFT];
+
+  // https://docs.djangoproject.com/en/dev/ref/csrf/#ajax
+  function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== "") {
+      var cookies = document.cookie.split(";");
+      for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        // Does this cookie string begin with the name we want?
+        if (cookie.substring(0, name.length + 1) === (name + "=")) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+
+  function _httpRequest(method, url, payload = null) {
+    const csrftoken = getCookie('csrftoken');
+    const data = {
+      method: method,
+      headers: {
+        'X-CSRFToken': csrftoken,
+      },
+      mode: 'cors',
+    };
+    if (payload !== null) {
+      const formData = new FormData();
+      for (const key of Object.keys(payload)) {
+        const value = payload[key];
+        formData.append(key, value);
+      }
+      data.body = formData;
+    }
+    return fetch(API_BASE_URL + url, data);
+  }
+
+  function httpGet(url) {
+    return _httpRequest('GET', url);
+  }
+
+  function httpPost(url, payload) {
+    return _httpRequest('POST', url, payload);
+  }
 
   export default {
     data() {
@@ -197,7 +141,7 @@
         lastName: '',
 
         // Backend data
-        persons: initialPersons,
+        persons: [],
       };
     },
     computed: {
@@ -223,7 +167,12 @@
       },
     },
     created() {
-      this.loadPersonImages();
+      this.fetchPersons().then((response) => {
+        response.json().then((data) => {
+          this.persons = data;
+          this.loadPersonImages();
+        });
+      });
     },
     mounted() {
       // Apply remembered stage zoom and position.
@@ -241,7 +190,7 @@
       this.setupSelection();
     },
     methods: {
-      onStageDragEnd(event) {
+      onStageDragEnd() {
         this.rememberStageZoomAndPosition();
       },
       rememberStageZoomAndPosition() {
@@ -308,7 +257,7 @@
               avatar: croppedAvatarBlob,
               avatar_filename: vm.imageOriginalFilename,
             };
-            httpPost('/persons/create', payload)
+            httpPost('/api/persons/create', payload)
               .then((response) => response.json())
               .then((person) => {
                 function callback(person) {
@@ -327,7 +276,10 @@
           y: e.target.attrs.y,
           scale: e.target.attrs.scaleX,
         };
-        httpPost('/persons/' + person.id, payload);
+        httpPost('/api/persons/' + person.id, payload);
+      },
+      fetchPersons() {
+        return httpGet('/api/persons/');
       },
       loadPersonImages() {
         for (let person of this.persons) {
@@ -581,9 +533,9 @@
   .cropper-face {
     background-color: inherit !important;
   }
-  .cropper-dashed, .cropper-point.point-se, .cropper-point.point-sw, .cropper-point.point-nw,   .cropper-point.point-ne, .cropper-line {
-    /* display: none !important; */
-  }
+  /* .cropper-dashed, .cropper-point.point-se, .cropper-point.point-sw, .cropper-point.point-nw,   .cropper-point.point-ne, .cropper-line {
+    display: none !important;
+  } */
   .cropper-view-box {
     outline: inherit !important;
   }
