@@ -68,9 +68,6 @@ def create_person(request):
 
 
 def _serialize_person(request, person: Person) -> dict:
-            "id": person.id,
-            "image": None,
-
     return {
         "avatar": person.avatar.url if person.avatar.name else FALLBACK_AVATAR_URL,
         "first_name": person.first_name,
