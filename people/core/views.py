@@ -2,8 +2,9 @@ import os
 import random
 import string
 from django import forms
-from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.core.files import File
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import redirect
@@ -17,39 +18,14 @@ from people.core.models import Person
 FALLBACK_AVATAR_URL = "https://i.imgur.com/cGonva6.png"
 
 
-def _get_absolute_avatar_url(request, person):
-    if not person.avatar.name:
-        return FALLBACK_AVATAR_URL
-    return request.build_absolute_uri(person.avatar.url)
-
-
-def _get_renderable_persons(request, persons=None):
-    if not persons:
-        persons = Person.objects.filter(created_by=request.user)
-    for person in persons:
-        person.avatar = _get_absolute_avatar_url(request, person)
-    return persons
-
-
 def _get_random_string(length: int) -> str:
     return "".join(random.choice(string.ascii_lowercase) for _ in range(length))
-
-
-@login_required
-@require_http_methods(("GET",))
-def home(request):
-    persons = _get_renderable_persons(request)
-    return render(request, "core/home.html", {"persons": persons})
 
 
 class PersonForm(forms.ModelForm):
     class Meta:
         model = Person
-        fields = (
-            "first_name",
-            "last_name",
-            # "avatar",
-        )
+        fields = ("first_name", "last_name")
 
 
 @login_required
@@ -79,26 +55,32 @@ def create_person(request):
     img = img.resize((300, 300), Image.LANCZOS)
     img.save(normalized_filepath, "PNG")
 
-    media_relative_filepath = os.path.join(
-        "avatars", os.path.basename(normalized_filepath)
-    )
-    person.avatar = media_relative_filepath
+    # media_relative_filepath = os.path.join(
+    #     "avatars", os.path.basename(normalized_filepath)
+    # )
+    with open(normalized_filepath, "rb") as f:
+        person.avatar = File(f, name=f.name)
 
     person.created_by = request.user
     person.save()
 
-    return JsonResponse(
-        {
-            "avatar": _get_absolute_avatar_url(request, person),
-            "first_name": person.first_name,
+    return JsonResponse(_serialize_person(request, person))
+
+
+def _serialize_person(request, person: Person) -> dict:
             "id": person.id,
             "image": None,
-            "last_name": person.last_name,
-            "scale": person.scale,
-            "x": person.x,
-            "y": person.y,
-        }
-    )
+
+    return {
+        "avatar": person.avatar.url if person.avatar.name else FALLBACK_AVATAR_URL,
+        "first_name": person.first_name,
+        "id": person.id,
+        "image": None,
+        "last_name": person.last_name,
+        "scale": person.scale,
+        "x": person.x,
+        "y": person.y,
+    }
 
 
 @login_required
@@ -109,7 +91,7 @@ def update_person(request, person_id: int):
     person.x = float(request.POST["x"])
     person.y = float(request.POST["y"])
     person.scale = float(request.POST["scale"])
-    person.save()
+    person.save(update_fields=["x", "y", "scale"])
 
     return HttpResponse()
 
@@ -121,3 +103,12 @@ def delete_person(request, person_id: int):
     assert person.created_by == request.user
     person.delete()
     return redirect("home")
+
+
+@login_required
+@require_http_methods(("GET",))
+def list_persons(request):
+    persons = Person.objects.filter(created_by=request.user)
+    return JsonResponse(
+        [_serialize_person(request, person) for person in persons], safe=False
+    )
