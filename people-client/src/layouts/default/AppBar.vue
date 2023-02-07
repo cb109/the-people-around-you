@@ -10,10 +10,9 @@
           rounded
           @click="showAddPersonDialog = !showAddPersonDialog"
         >Add Person</v-btn>
-        {{showAddPersonDialog}}
       </v-app-bar-title>
     </v-app-bar>
-    <AddPersonDialog :show="showAddPersonDialog" />
+    <AddPersonDialog v-model="showAddPersonDialog" />
   </div>
 </template>
 
