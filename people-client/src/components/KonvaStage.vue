@@ -62,7 +62,10 @@
 <script>
   import Konva from 'konva';
 
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
+  import { useAppStore } from '@/store/app';
+  const store = useAppStore();
+
+  import { httpGet, httpPost } from '@/httpClient.js';
 
   function clipFuncCircle (ctx) {
     ctx.arc(150, 150, 150, 0, Math.PI * 2, false);
@@ -73,50 +76,7 @@
   const MOUSE_BUTTON_MIDDLE = 1;
   Konva.dragButtons = [MOUSE_BUTTON_LEFT];
 
-  // https://docs.djangoproject.com/en/dev/ref/csrf/#ajax
-  function getCookie(name) {
-    var cookieValue = null;
-    if (document.cookie && document.cookie !== "") {
-      var cookies = document.cookie.split(";");
-      for (var i = 0; i < cookies.length; i++) {
-        var cookie = cookies[i].trim();
-        // Does this cookie string begin with the name we want?
-        if (cookie.substring(0, name.length + 1) === (name + "=")) {
-          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-          break;
-        }
-      }
-    }
-    return cookieValue;
-  }
-
-  function _httpRequest(method, url, payload = null) {
-    const csrftoken = getCookie('csrftoken');
-    const data = {
-      method: method,
-      headers: {
-        'X-CSRFToken': csrftoken,
-      },
-      mode: 'cors',
-    };
-    if (payload !== null) {
-      const formData = new FormData();
-      for (const key of Object.keys(payload)) {
-        const value = payload[key];
-        formData.append(key, value);
-      }
-      data.body = formData;
-    }
-    return fetch(API_BASE_URL + url, data);
-  }
-
-  function httpGet(url) {
-    return _httpRequest('GET', url);
-  }
-
-  function httpPost(url, payload) {
-    return _httpRequest('POST', url, payload);
-  }
+  const initialZoom = 0.25;
 
   export default {
     data() {
@@ -128,23 +88,20 @@
           height: window.innerHeight,
           draggable: false,
         },
-        zoom: 1.0,
+        zoom: initialZoom,
         transformer: {nodes: (_) => []},
+
+        store: store,
 
         // cropperjs
         cropper: null,
         imageOriginalFilename: '',
-
-        // Main fixed UI
-        showDialog: false,
-        firstName: '',
-        lastName: '',
-
-        // Backend data
-        persons: [],
       };
     },
     computed: {
+      persons() {
+        return this.store.persons;
+      },
       dialogFormIsValid() {
         return (
           !!this.firstName && !this.firstName.trim() == '' &&
@@ -167,16 +124,27 @@
       },
     },
     created() {
+      const vm = this;
+      this.store.$onAction(function(opts) {
+        if (opts.name == 'addPerson') {
+          const person = opts.args[0];
+          vm.loadPersonImage(
+            person,
+            () => vm.$nextTick(() => vm.selectPerson(person.id))
+          );
+        }
+      });
+
       this.fetchPersons().then((response) => {
-        response.json().then((data) => {
-          this.persons = data;
+        response.json().then((persons) => {
+          this.store.setPersons(persons);
           this.loadPersonImages();
         });
       });
     },
     mounted() {
       // Apply remembered stage zoom and position.
-      this.zoom = localStorage.getItem('stage.zoom') || 1.0;
+      this.zoom = localStorage.getItem('stage.zoom') || initialZoom;
       const stageX = (localStorage.getItem('stage.x') || 0)  / this.zoom;
       const stageY = (localStorage.getItem('stage.y') || 0)  / this.zoom;
 
@@ -239,36 +207,6 @@
           }
         }
         return false;
-      },
-      resetDialog() {
-        this.firstName = '';
-        this.lastName = '';
-      },
-      closeDialog() {
-        this.showDialog = false;
-      },
-      createPerson() {
-        const vm = this;
-        this.crop()
-          .then((croppedAvatarBlob) => {
-            const payload = {
-              first_name: vm.firstName,
-              last_name: vm.lastName,
-              avatar: croppedAvatarBlob,
-              avatar_filename: vm.imageOriginalFilename,
-            };
-            httpPost('/api/persons/create', payload)
-              .then((response) => response.json())
-              .then((person) => {
-                function callback(person) {
-                  vm.persons.push(person);
-                }
-                vm.loadPersonImage(person, callback);
-                vm.resetDialog();
-                vm.closeDialog();
-                // TODO: Select person
-              });
-          });
       },
       onPersonTransformed(e, person) {
         const payload = {
@@ -347,6 +285,11 @@
           stage.position(newPos);
         });
       },
+      selectPerson(personId) {
+        const stage = this.getStage();
+        const personImageNode = stage.findOne('#' + personId);
+        stage.fire('click', {target: personImageNode, evt: {}}, true);
+      },
       setupSelection() {
         const vm = this;
         const stage = this.getStage();
@@ -403,72 +346,8 @@
         layer.add(this.transformer);
         this.selectedNodes = [];
 
-        // // add a new feature, lets add ability to draw selection rectangle
-        // const selectionRectangle = new Konva.Rect({
-        //   fill: 'rgba(0, 0, 255, 0.5)',
-        //   visible: false,
-        // });
-        // layer.add(selectionRectangle);
-
-        // let x1, y1, x2, y2;
-        // stage.on('mousedown touchstart', (e) => {
-        //   // do nothing if we mousedown on any shape
-        //   if (e.target !== stage) {
-        //     return;
-        //   }
-        //   e.evt.preventDefault();
-        //   x1 = stage.getPointerPosition().x;
-        //   y1 = stage.getPointerPosition().y;
-        //   x2 = stage.getPointerPosition().x;
-        //   y2 = stage.getPointerPosition().y;
-
-        //   selectionRectangle.visible(true);
-        //   selectionRectangle.width(0);
-        //   selectionRectangle.height(0);
-        // });
-
-        // stage.on('mousemove touchmove', (e) => {
-        //   // do nothing if we didn't start selection
-        //   if (!selectionRectangle.visible()) {
-        //     return;
-        //   }
-        //   e.evt.preventDefault();
-        //   x2 = stage.getPointerPosition().x;
-        //   y2 = stage.getPointerPosition().y;
-
-        //   selectionRectangle.setAttrs({
-        //     x: Math.min(x1, x2),
-        //     y: Math.min(y1, y2),
-        //     width: Math.abs(x2 - x1),
-        //     height: Math.abs(y2 - y1),
-        //   });
-        // });
-
-        // stage.on('mouseup touchend', (e) => {
-        //   // do nothing if we didn't start selection
-        //   if (!selectionRectangle.visible()) {
-        //     return;
-        //   }
-        //   e.evt.preventDefault();
-        //   // update visibility in timeout, so we can check it in click event
-        //   setTimeout(() => {
-        //     selectionRectangle.visible(false);
-        //   });
-
-        //   const shapes = stage.find('.person-group');
-        //   const box = selectionRectangle.getClientRect();
-        //   const selected = shapes.filter((shape) =>
-        //     Konva.Util.haveIntersection(box, shape.getClientRect())
-        //   );
-        //   vm.selectedNodes = selected;
-        // });
-
         // clicks should select/deselect shapes
         stage.on('click tap', function (e) {
-          // // if we are selecting with rect, do nothing
-          // if (selectionRectangle.visible()) {
-          //   return;
-          // }
 
           // if click on empty area - remove all selections
           if (e.target === stage) {
@@ -479,7 +358,11 @@
           // Allow only specific elements as targets and get their
           // parent group as the actual thing we toggle the selection
           // on.
-          let group = null;
+
+          // We may have programmatically selected the v-group (but it's
+          // not selectable manually).
+          let group = e.target.hasName('person-group') ? e.target : null;
+
           if (e.target.hasName('person-image') || e.target.hasName('person-name')) {
             group = e.target.getParent().getParent();
           }
@@ -487,7 +370,7 @@
             return;
           }
 
-          // do we pressed shift or ctrl?
+          // Did we press shift or ctrl?
           const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
           const isSelected = vm.selectedNodes.indexOf(group) >= 0;
 
