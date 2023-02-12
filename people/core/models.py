@@ -34,3 +34,11 @@ class Person(TimestampedMixin, models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["first_name", "last_name", "created_by"],
+                name="unique_person_name_per_creator",
+            )
+        ]
