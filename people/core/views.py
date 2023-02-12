@@ -68,6 +68,17 @@ def create_person(request):
     return JsonResponse(_serialize_person(request, person))
 
 
+@login_required
+@require_http_methods(("POST",))
+def update_person(request, person_id: int):
+    person = Person.objects.get(id=person_id, created_by=request.user)
+    form = PersonForm(request.POST, instance=person)
+    form.is_valid()
+    form.save()
+    person.refresh_from_db()
+    return JsonResponse(_serialize_person(request, person))
+
+
 def _serialize_person(request, person: Person) -> dict:
     return {
         "avatar": person.avatar.url if person.avatar.name else FALLBACK_AVATAR_URL,
@@ -83,7 +94,7 @@ def _serialize_person(request, person: Person) -> dict:
 
 @login_required
 @require_http_methods(("POST",))
-def update_person(request, person_id: int):
+def update_person_transforms(request, person_id: int):
     person = Person.objects.get(id=person_id)
 
     person.x = float(request.POST["x"])

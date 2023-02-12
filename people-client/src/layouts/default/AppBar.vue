@@ -11,19 +11,9 @@
         >Add Person</v-btn>
       </v-app-bar-title>
     </v-app-bar>
-    <AddPersonDialog v-model="showAddPersonDialog" @create="createPerson"/>
-    <!-- <v-navigation-drawer
-        v-model="showAddPersonDialog"
-        temporary
-        location="left"
-        style="min-width: 480px;"
-      >
-      <v-list>
-        <v-list-item>1</v-list-item>
-        <v-list-item>2</v-list-item>
-        <v-list-item>3</v-list-item>
-      </v-list>
-    </v-navigation-drawer> -->
+
+    <AddPersonDialog v-model="showAddPersonDialog" @create="createPerson" />
+    <EditPersonDrawer v-model="showEditPersonDrawer" @update="updatePerson" />
   </div>
 </template>
 
@@ -33,16 +23,30 @@
 
   import { httpPost } from '@/httpClient.js';
   import AddPersonDialog from '@/components/AddPersonDialog.vue';
+  import EditPersonDrawer from '@/components/EditPersonDrawer.vue';
 
   export default {
     components: {
       AddPersonDialog,
+      EditPersonDrawer,
     },
     data() {
       return {
         store: store,
         showAddPersonDialog: false,
       };
+    },
+    computed: {
+      showEditPersonDrawer: {
+        get() {
+          return this.store.editedPerson != null;
+        },
+        set(show) {
+          if (!show) {
+            this.store.setEditedPerson(null);
+          }
+        },
+      },
     },
     methods: {
       createPerson(opts) {
@@ -55,7 +59,18 @@
           .then((response) => response.json())
           .then((person) => {
             this.store.addPerson(person);
-            // TODO: Select person
+          });
+      },
+      updatePerson(opts) {
+        const payload = {
+          first_name: opts.firstName,
+          last_name: opts.lastName,
+        };
+        httpPost('/api/persons/' + opts.personId, payload)
+          .then((response) => response.json())
+          .then((person) => {
+            this.store.setEditedPerson(null);
+            this.store.updatePerson(person);
           });
       },
     },

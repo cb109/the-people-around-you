@@ -11,6 +11,11 @@ urlpatterns = [
     path("api/persons/create", views.create_person, name="create-person"),
     path("api/persons/<int:person_id>", views.update_person, name="update-person"),
     path(
+        "api/persons/<int:person_id>/transforms",
+        views.update_person,
+        name="update-person-transforms",
+    ),
+    path(
         "api/persons/<int:person_id>/delete", views.delete_person, name="delete-person"
     ),
     path("api/persons/", views.list_persons, name="list-persons"),

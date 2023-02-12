@@ -126,12 +126,11 @@
     created() {
       const vm = this;
       this.store.$onAction(function(opts) {
-        if (opts.name == 'addPerson') {
+        if (opts.name == 'addPerson' || opts.name == 'updatePerson') {
           const person = opts.args[0];
-          vm.loadPersonImage(
-            person,
-            () => vm.$nextTick(() => vm.selectPerson(person.id))
-          );
+          const select = opts.name == 'addPerson';
+          const callback = select ? () => vm.$nextTick(() => vm.selectPerson(person.id)) : null;
+          vm.loadPersonImage( person, callback);
         }
       });
 
@@ -214,7 +213,10 @@
           y: e.target.attrs.y,
           scale: e.target.attrs.scaleX,
         };
-        httpPost('/api/persons/' + person.id, payload);
+        httpPost('/api/persons/' + person.id + '/transforms', payload);
+      },
+      onPersonSelected(e, person) {
+        this.store.setEditedPerson(person);
       },
       fetchPersons() {
         return httpGet('/api/persons/');
@@ -389,6 +391,13 @@
             // add the node into selection
             const nodes = vm.selectedNodes.concat([group]);
             vm.selectedNodes = nodes;
+          }
+
+          if (vm.selectedNodes.length === 1) {
+            const person = vm.persons.filter(person => person.id == group.id())[0];
+            vm.onPersonSelected(e, person);
+          } else {
+            vm.store.setEditedPerson(null);
           }
         });
       },
