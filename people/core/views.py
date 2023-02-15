@@ -81,7 +81,7 @@ def update_person(request, person_id: int):
 
 def _serialize_person(request, person: Person) -> dict:
     return {
-        "avatar": person.avatar.url if person.avatar.name else FALLBACK_AVATAR_URL,
+        "avatar": person.avatar_url or FALLBACK_AVATAR_URL,
         "first_name": person.first_name,
         "id": person.id,
         "image": None,

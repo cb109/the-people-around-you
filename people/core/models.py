@@ -26,7 +26,7 @@ class Person(TimestampedMixin, models.Model):
 
     avatar = models.ImageField(upload_to="avatars", default=None, null=True, blank=True)
 
-    # Additional fields to support representation as a Fabric.js object.
+    # Additional fields to support representation as a Konva/Fabric.js object.
     x = models.FloatField(default=0)
     y = models.FloatField(default=0)
     angle = models.FloatField(default=0)
@@ -35,6 +35,13 @@ class Person(TimestampedMixin, models.Model):
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
 
+    @property
+    def avatar_url(self):
+        person_image = self.person_images.last()
+        if person_image:
+            return person_image.image.file.url
+        return None
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -42,3 +49,22 @@ class Person(TimestampedMixin, models.Model):
                 name="unique_person_name_per_creator",
             )
         ]
+
+
+class Image(TimestampedMixin, models.Model):
+    file = models.ImageField(upload_to="images")
+
+    def __str__(self):
+        return self.file.name
+
+
+class PersonImage(TimestampedMixin, models.Model):
+    person = models.ForeignKey(
+        Person, on_delete=models.CASCADE, related_name="person_images"
+    )
+    image = models.ForeignKey(
+        Image, on_delete=models.CASCADE, related_name="person_images"
+    )
+
+    def __str__(self):
+        return f"{self.person} -> {self.image}"

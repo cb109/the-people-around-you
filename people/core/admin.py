@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.safestring import mark_safe
 
-from people.core.models import User, Person
+from people.core.models import User, Person, Image, PersonImage
 
 admin.site.site_header = "The People Around You - Administration"
 
@@ -31,5 +31,7 @@ class PersonAdmin(admin.ModelAdmin):
         )
 
 
-admin.site.register(User, CustomUserAdmin)
+admin.site.register(Image)
 admin.site.register(Person, PersonAdmin)
+admin.site.register(PersonImage)
+admin.site.register(User, CustomUserAdmin)
