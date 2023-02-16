@@ -4,24 +4,29 @@
     permanent
     location="right"
     :style="{'min-width': 480 + 'px'}"
+    class="elevation-10"
   >
     <v-list>
       <v-list-item
         v-if="editedPerson"
       >
-        <template v-slot:append>
+        <template v-slot:prepend>
           <div class="pa-2">
             <v-btn
-              variant="flat"
-              rounded="pill"
+              icon
+              flat
+              style="position: absolute; top: 0px; left: 8px;"
               @click="close()"
             >
-              Close
+              <v-icon size="large">mdi-close</v-icon>
             </v-btn>
           </div>
         </template>
       </v-list-item>
-      <v-row justify="center">
+      <v-row
+        justify="center"
+        style="position: relative"
+      >
         <v-avatar
           v-if="editedPerson"
           size="300"
@@ -33,8 +38,15 @@
             :width="300"
           ></v-img>
         </v-avatar>
+        <v-btn
+          variant="plain"
+          size="small"
+          rounded="pill"
+          style="position: absolute; bottom: 16px; right: 64px;"
+          @click="$emit('show-avatar-dialog')"
+        >Change</v-btn>
       </v-row>
-      <v-list-item class="mt-5">
+      <v-list-item class="pt-2 mt-5">
         <v-row>
           <v-col>
             <v-text-field
@@ -76,7 +88,6 @@
 </template>
 
 <script>
-
 import { useAppStore } from '@/store/app';
 const store = useAppStore();
 
@@ -94,6 +105,7 @@ export default {
   emits: [
     'update:modelValue',
     'update',
+    'show-avatar-dialog',
   ],
   data() {
     return {

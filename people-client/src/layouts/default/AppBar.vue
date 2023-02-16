@@ -11,70 +11,77 @@
         >Add Person</v-btn>
       </v-app-bar-title>
     </v-app-bar>
-
+    <EditPersonDrawer
+      v-model="showEditPersonDrawer"
+      @update="updatePerson"
+      @show-avatar-dialog="showAvatarDialog = true"
+    />
     <AddPersonDialog v-model="showAddPersonDialog" @create="createPerson" />
-    <EditPersonDrawer v-model="showEditPersonDrawer" @update="updatePerson" />
+    <AvatarDialog v-model="showAvatarDialog" />
   </div>
 </template>
 
 <script>
-  import { useAppStore } from '@/store/app';
-  const store = useAppStore();
+import { useAppStore } from '@/store/app';
+const store = useAppStore();
 
-  import { httpPost } from '@/httpClient.js';
-  import AddPersonDialog from '@/components/AddPersonDialog.vue';
-  import EditPersonDrawer from '@/components/EditPersonDrawer.vue';
+import { httpPost } from '@/httpClient.js';
+import AddPersonDialog from '@/components/AddPersonDialog.vue';
+import AvatarDialog from '@/components/AvatarDialog.vue';
+import EditPersonDrawer from '@/components/EditPersonDrawer.vue';
 
-  export default {
-    components: {
-      AddPersonDialog,
-      EditPersonDrawer,
+export default {
+  components: {
+    AddPersonDialog,
+    AvatarDialog,
+    EditPersonDrawer,
+  },
+  data() {
+    return {
+      store: store,
+      showAddPersonDialog: false,
+      showAvatarDialog: false,
+    };
+  },
+  computed: {
+    showEditPersonDrawer: {
+      get() {
+        return this.store.editedPerson != null;
+      },
+      set(show) {
+        if (!show) {
+          this.store.setEditedPerson(null);
+        }
+      },
     },
-    data() {
-      return {
-        store: store,
-        showAddPersonDialog: false,
+  },
+  methods: {
+    createPerson(opts) {
+      const payload = {
+        first_name: opts.firstName,
+        last_name: opts.lastName,
       };
+      this.showAddPersonDialog = false;
+      httpPost('/api/persons/create', payload)
+        .then((response) => response.json())
+        .then((person) => {
+          this.store.addPerson(person);
+        });
     },
-    computed: {
-      showEditPersonDrawer: {
-        get() {
-          return this.store.editedPerson != null;
-        },
-        set(show) {
-          if (!show) {
-            this.store.setEditedPerson(null);
-          }
-        },
-      },
+    updatePerson(opts) {
+      const payload = {
+        first_name: opts.firstName,
+        last_name: opts.lastName,
+      };
+      httpPost('/api/persons/' + opts.personId, payload)
+        .then((response) => response.json())
+        .then((person) => {
+          this.store.setEditedPerson(null);
+          this.store.updatePerson(person);
+        });
     },
-    methods: {
-      createPerson(opts) {
-        const payload = {
-          first_name: opts.firstName,
-          last_name: opts.lastName,
-        };
-        this.showAddPersonDialog = false;
-        httpPost('/api/persons/create', payload)
-          .then((response) => response.json())
-          .then((person) => {
-            this.store.addPerson(person);
-          });
-      },
-      updatePerson(opts) {
-        const payload = {
-          first_name: opts.firstName,
-          last_name: opts.lastName,
-        };
-        httpPost('/api/persons/' + opts.personId, payload)
-          .then((response) => response.json())
-          .then((person) => {
-            this.store.setEditedPerson(null);
-            this.store.updatePerson(person);
-          });
-      },
-    },
-  }
+  },
+}
 </script>
 
 <style>
