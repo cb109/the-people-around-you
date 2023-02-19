@@ -12,7 +12,14 @@ class CustomUserAdmin(UserAdmin):
 
 
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ("label", "first_name", "last_name", "created_by", "avatar_preview")
+    list_display = (
+        "label",
+        "first_name",
+        "last_name",
+        "date_of_birth",
+        "created_by",
+        "avatar_preview",
+    )
 
     def label(self, person):
         created_by = person.created_by or "-"

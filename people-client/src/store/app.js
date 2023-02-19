@@ -13,6 +13,7 @@ export const useAppStore = defineStore('app', {
       this.persons.push(person);
     },
     updatePerson(person) {
+      console.log('updatePerson', person);
       for (let i = 0; i < this.persons.length; i++) {
         if (this.persons[i].id == person.id) {
           this.persons[i] = person;

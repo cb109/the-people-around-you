@@ -95,6 +95,7 @@ export default {
       const payload = {
         first_name: opts.firstName,
         last_name: opts.lastName,
+        date_of_birth: opts.dateOfBirth,
       };
       httpPost('/api/persons/' + opts.personId, payload)
         .then((response) => response.json())

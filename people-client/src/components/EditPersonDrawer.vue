@@ -48,6 +48,7 @@
       </v-row>
       <v-list-item class="pt-2 mt-5">
         <v-row>
+          <!-- First Name -->
           <v-col>
             <v-text-field
               ref="firstnameInput"
@@ -55,18 +56,36 @@
               v-model="firstName"
               color="primary"
               label="First Name"
+              clearable
               @keyup.enter="emitUpdate()"
             ></v-text-field>
           </v-col>
+          <!-- Last Name -->
           <v-col>
             <v-text-field
               variant="underlined"
               v-model="lastName"
               color="primary"
               label="Last Name"
+              clearable
               @keyup.enter="emitUpdate()"
             ></v-text-field>
           </v-col>
+        </v-row>
+        <v-row>
+          <!-- Date of Birth Name -->
+          <v-col>
+            <v-text-field
+              variant="underlined"
+              type="date"
+              v-model="dateOfBirth"
+              color="primary"
+              label="Date of Birth"
+              clearable
+              @keyup.enter="emitUpdate()"
+            ></v-text-field>
+          </v-col>
+          <v-col></v-col>
         </v-row>
       </v-list-item>
       <v-slide-x-reverse-transition>
@@ -112,6 +131,7 @@ export default {
       store: store,
       firstName: '',
       lastName: '',
+      dateOfBirth: null,
     };
   },
   computed: {
@@ -119,7 +139,8 @@ export default {
       return (
         !!this.editedPerson && (
           this.firstName != this.editedPerson.first_name ||
-          this.lastName != this.editedPerson.last_name
+          this.lastName != this.editedPerson.last_name ||
+          this.dateOfBirth != this.editedPerson.date_of_birth
         )
       );
     },
@@ -153,6 +174,7 @@ export default {
       if (person) {
         this.firstName = person.first_name;
         this.lastName = person.last_name;
+        this.dateOfBirth = person.date_of_birth;
       }
     },
   },
@@ -168,6 +190,7 @@ export default {
         personId: this.editedPerson.id,
         firstName: this.firstName,
         lastName: this.lastName,
+        dateOfBirth: this.dateOfBirth,
       });
     },
   },

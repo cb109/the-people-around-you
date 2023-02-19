@@ -1,14 +1,8 @@
-import os
-import random
-import string
 from django import forms
-from django.conf import settings
 from django.contrib.auth.decorators import login_required
-from django.core.files import File
 from django.http import HttpResponse
 from django.http import JsonResponse
 from django.shortcuts import redirect
-from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 from PIL import Image
 
@@ -18,14 +12,10 @@ from people.core.models import Person, Image, PersonImage
 FALLBACK_AVATAR_URL = "https://i.imgur.com/cGonva6.png"
 
 
-def _get_random_string(length: int) -> str:
-    return "".join(random.choice(string.ascii_lowercase) for _ in range(length))
-
-
 class PersonForm(forms.ModelForm):
     class Meta:
         model = Person
-        fields = ("first_name", "last_name")
+        fields = ("first_name", "last_name", "date_of_birth")
 
 
 @login_required
@@ -53,8 +43,11 @@ def update_person(request, person_id: int):
 
 
 def _serialize_person(person: Person) -> dict:
-    return {
+    x = {
         "avatar": person.avatar_url or FALLBACK_AVATAR_URL,
+        "date_of_birth": (
+            None if not person.date_of_birth else person.date_of_birth.isoformat()
+        ),
         "first_name": person.first_name,
         "id": person.id,
         "image": None,
@@ -63,6 +56,8 @@ def _serialize_person(person: Person) -> dict:
         "x": person.x,
         "y": person.y,
     }
+    print("x", x)
+    return x
 
 
 @login_required
@@ -88,9 +83,7 @@ def upload_avatar(request, person_id: int):
     PersonImage.objects.create(person=person, image=image)
 
     person.refresh_from_db()
-    serialized_person = _serialize_person(person)
-    print("serialized_person", serialized_person)
-    return JsonResponse(serialized_person)
+    return JsonResponse(_serialize_person(person))
 
 
 @login_required

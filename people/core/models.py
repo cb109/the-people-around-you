@@ -22,6 +22,8 @@ class Person(TimestampedMixin, models.Model):
     first_name = models.CharField(max_length=128, default="")
     last_name = models.CharField(max_length=128, default="")
 
+    date_of_birth = models.DateField(default=None, blank=True, null=True)
+
     created_by = models.ForeignKey(
         User, default=None, null=True, on_delete=models.CASCADE
     )
