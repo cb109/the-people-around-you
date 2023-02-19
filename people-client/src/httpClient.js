@@ -29,8 +29,14 @@ function _httpRequest(method, url, payload = null) {
   if (payload !== null) {
     const formData = new FormData();
     for (const key of Object.keys(payload)) {
-      const value = payload[key];
-      formData.append(key, value);
+      let value = payload[key];
+      const isNamedImageBlobUpload = !!value.name && value.type.startsWith('image');
+      if (isNamedImageBlobUpload) {
+        const blob = value;
+        formData.append(key, blob, blob.name);
+      } else {
+        formData.append(key, value);
+      }
     }
     data.body = formData;
   }

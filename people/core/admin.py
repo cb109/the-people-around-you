@@ -20,18 +20,32 @@ class PersonAdmin(admin.ModelAdmin):
 
     @mark_safe
     def avatar_preview(self, person):
-        if not person.avatar.name:
+        if not person.avatar_url:
             return ""
-        return (
-            f"<img src='{person.avatar.url}' height='240px'>"
-            f"<br>"
-            f"<small style='color: grey'>"
-            f"  {person.avatar.width} x {person.avatar.height} px"
-            f"</small>"
-        )
+        return f"<img src='{person.avatar_url}' height='240px'>"
 
 
-admin.site.register(Image)
+class PersonImageAdmin(admin.ModelAdmin):
+    list_display = ("person", "image", "image_preview", "created_at")
+
+    @mark_safe
+    def image_preview(self, person_image):
+        if not person_image.image.preview.name:
+            return ""
+        return f"<img src='{person_image.image.preview.url}' height='120px'>"
+
+
+class ImageAdmin(admin.ModelAdmin):
+    list_display = ("file", "preview_preview", "created_at")
+
+    @mark_safe
+    def preview_preview(self, image):
+        if not image.preview.name:
+            return ""
+        return f"<img src='{image.preview.url}' height='120px'>"
+
+
+admin.site.register(Image, ImageAdmin)
 admin.site.register(Person, PersonAdmin)
-admin.site.register(PersonImage)
+admin.site.register(PersonImage, PersonImageAdmin)
 admin.site.register(User, CustomUserAdmin)

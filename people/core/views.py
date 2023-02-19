@@ -12,7 +12,7 @@ from django.shortcuts import render
 from django.views.decorators.http import require_http_methods
 from PIL import Image
 
-from people.core.models import Person
+from people.core.models import Person, Image, PersonImage
 
 
 FALLBACK_AVATAR_URL = "https://i.imgur.com/cGonva6.png"
@@ -33,39 +33,12 @@ class PersonForm(forms.ModelForm):
 def create_person(request):
     form = PersonForm(request.POST)
     form.is_valid()
+
     person = form.save(commit=False)
-
-    # prefix = _get_random_string(10)
-    # avatar_file = request.FILES["avatar"]
-    # avatar_filename = request.POST["avatar_filename"]
-    # avatar_filepath = os.path.join(
-    #     settings.MEDIA_ROOT,
-    #     "avatars",
-    #     f"{prefix}.{avatar_filename}",
-    # )
-    # try:
-    #     os.makedirs(os.path.dirname(avatar_filepath))
-    # except FileExistsError:
-    #     pass
-    # with open(avatar_filepath, "wb") as f:
-    #     f.write(avatar_file.read())
-
-    # # Create normalized size version.
-    # normalized_filepath = avatar_filepath + "_300x300.png"
-    # img = Image.open(avatar_filepath)
-    # img = img.resize((300, 300), Image.LANCZOS)
-    # img.save(normalized_filepath, "PNG")
-
-    # media_relative_filepath = os.path.join(
-    #     "avatars", os.path.basename(normalized_filepath)
-    # )
-    # with open(normalized_filepath, "rb") as f:
-    #     person.avatar = File(f, name=f.name)
-
     person.created_by = request.user
     person.save()
 
-    return JsonResponse(_serialize_person(request, person))
+    return JsonResponse(_serialize_person(person))
 
 
 @login_required
@@ -76,10 +49,10 @@ def update_person(request, person_id: int):
     form.is_valid()
     form.save()
     person.refresh_from_db()
-    return JsonResponse(_serialize_person(request, person))
+    return JsonResponse(_serialize_person(person))
 
 
-def _serialize_person(request, person: Person) -> dict:
+def _serialize_person(person: Person) -> dict:
     return {
         "avatar": person.avatar_url or FALLBACK_AVATAR_URL,
         "first_name": person.first_name,
@@ -107,6 +80,21 @@ def update_person_transforms(request, person_id: int):
 
 @login_required
 @require_http_methods(("POST",))
+def upload_avatar(request, person_id: int):
+    person = Person.objects.get(id=person_id)
+    avatar_file = request.FILES["avatar"]
+
+    image = Image.objects.create(file=avatar_file)
+    PersonImage.objects.create(person=person, image=image)
+
+    person.refresh_from_db()
+    serialized_person = _serialize_person(person)
+    print("serialized_person", serialized_person)
+    return JsonResponse(serialized_person)
+
+
+@login_required
+@require_http_methods(("POST",))
 def delete_person(request, person_id: int):
     person = Person.objects.get(id=person_id)
     assert person.created_by == request.user
@@ -118,6 +106,4 @@ def delete_person(request, person_id: int):
 @require_http_methods(("GET",))
 def list_persons(request):
     persons = Person.objects.filter(created_by=request.user)
-    return JsonResponse(
-        [_serialize_person(request, person) for person in persons], safe=False
-    )
+    return JsonResponse([_serialize_person(person) for person in persons], safe=False)

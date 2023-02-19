@@ -29,7 +29,7 @@
             }"
           >
             <v-image
-              :key="person.image"
+              :key="person.avatar"
               :config="{
                 image: person.image,
                 name: 'person-image',
@@ -128,9 +128,9 @@
       this.store.$onAction(function(opts) {
         if (opts.name == 'addPerson' || opts.name == 'updatePerson') {
           const person = opts.args[0];
-          const select = opts.name == 'addPerson';
-          const callback = select ? () => vm.$nextTick(() => vm.selectPerson(person.id)) : null;
-          vm.loadPersonImage( person, callback);
+          const doSelect = opts.name == 'addPerson';
+          const callback = doSelect ? () => vm.$nextTick(() => vm.selectPerson(person.id)) : null;
+          vm.loadPersonImage(person, callback);
         }
       });
 

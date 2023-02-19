@@ -14,10 +14,16 @@
     <EditPersonDrawer
       v-model="showEditPersonDrawer"
       @update="updatePerson"
-      @show-avatar-dialog="showAvatarDialog = true"
+      @show-avatar-dialog="showCropAvatarDialog = true"
     />
-    <AddPersonDialog v-model="showAddPersonDialog" @create="createPerson" />
-    <AvatarDialog v-model="showAvatarDialog" />
+    <AddPersonDialog
+      v-model="showAddPersonDialog"
+      @create="createPerson"
+    />
+    <CropAvatarDialog
+      v-model="showCropAvatarDialog"
+      @cropped="uploadCroppedAvatar"
+    />
   </div>
 </template>
 
@@ -27,20 +33,20 @@ const store = useAppStore();
 
 import { httpPost } from '@/httpClient.js';
 import AddPersonDialog from '@/components/AddPersonDialog.vue';
-import AvatarDialog from '@/components/AvatarDialog.vue';
+import CropAvatarDialog from '@/components/CropAvatarDialog.vue';
 import EditPersonDrawer from '@/components/EditPersonDrawer.vue';
 
 export default {
   components: {
     AddPersonDialog,
-    AvatarDialog,
+    CropAvatarDialog,
     EditPersonDrawer,
   },
   data() {
     return {
       store: store,
       showAddPersonDialog: false,
-      showAvatarDialog: false,
+      showCropAvatarDialog: false,
     };
   },
   computed: {
@@ -56,6 +62,23 @@ export default {
     },
   },
   methods: {
+    uploadCroppedAvatar(croppedImageUrl) {
+      const payload = {
+        avatar: croppedImageUrl
+      };
+
+      const personId = this.store.editedPerson.id;
+      httpPost('/api/persons/' + personId + '/avatar', payload)
+        .then((response) => response.json())
+        .then((person) => {
+          this.store.setEditedPerson(null);
+          this.store.updatePerson(person);
+          this.store.setEditedPerson(person);
+        })
+        .finally(() => {
+          this.showCropAvatarDialog = false;
+        });
+    },
     createPerson(opts) {
       const payload = {
         first_name: opts.firstName,

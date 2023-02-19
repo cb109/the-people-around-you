@@ -16,6 +16,9 @@ urlpatterns = [
         name="update-person-transforms",
     ),
     path(
+        "api/persons/<int:person_id>/avatar", views.upload_avatar, name="upload-avatar"
+    ),
+    path(
         "api/persons/<int:person_id>/delete", views.delete_person, name="delete-person"
     ),
     path("api/persons/", views.list_persons, name="list-persons"),

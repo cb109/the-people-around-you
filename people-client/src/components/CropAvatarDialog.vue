@@ -28,6 +28,7 @@
           :src="imageURL"
           :stencil-component="$options.components.CircleStencil"
           class="cropper"
+          @change="onCropperChange"
         />
       </v-card-text>
       <v-card-actions>
@@ -36,6 +37,7 @@
           block
           rounded="pill"
           color="primary"
+          @click="emitCropped()"
         >Upload</v-btn>
       </v-card-actions>
     </v-card>
@@ -45,11 +47,12 @@
 <script>
 import { Cropper, CircleStencil } from 'vue-advanced-cropper';
 import 'vue-advanced-cropper/dist/style.css';
+import 'vue-advanced-cropper/dist/theme.compact.css';
 
 export default {
   components: {
     Cropper,
-    CircleStencil,
+    CircleStencil,  // sic!
   },
   props: {
     modelValue: {
@@ -59,10 +62,13 @@ export default {
   },
   emits: [
     'update:modelValue',
+    'cropped',
   ],
   data() {
     return {
       imageModel: null,
+      croppedImageBlob: null,
+      croppedImageURL: null,
     };
   },
   computed: {
@@ -98,16 +104,23 @@ export default {
   methods : {
     reset() {
       this.imageModel = null;
+      this.croppedImageBlob = null;
+      this.croppedImageURL = null;
     },
-    // emitCreate() {
-    //   if (!this.formIsValid) {
-    //     return;
-    //   }
-    //   this.$emit('create', {
-    //     firstName: this.firstName,
-    //     lastName: this.lastName,
-    //   });
-    // },
+    // https://advanced-cropper.github.io/vue-advanced-cropper/guides/recipes.html#getting-the-result
+    onCropperChange({coordinates, canvas}) {
+      canvas.toBlob((blob) => {
+
+        const image = this.imageModel[0];
+        blob.name = image.name;
+
+        this.croppedImageBlob = blob;
+      });
+      this.croppedImageURL = canvas.toDataURL();
+    },
+    emitCropped() {
+      this.$emit('cropped', this.croppedImageBlob);
+    },
   },
 }
 </script>
