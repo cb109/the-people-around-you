@@ -1,4 +1,5 @@
 import os
+from datetime import date
 
 from django.contrib.auth.models import AbstractUser
 from django.core.files.base import ContentFile
@@ -46,6 +47,18 @@ class Person(TimestampedMixin, models.Model):
                 return person_image.image.preview.url
             return person_image.image.file.url
         return None
+
+    @property
+    def age(self):
+        if not self.date_of_birth:
+            return None
+
+        # https://stackoverflow.com/a/9754466
+        today = date.today()
+        born = self.date_of_birth
+        return (
+            today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+        )
 
     class Meta:
         constraints = [

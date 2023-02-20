@@ -43,7 +43,8 @@ def update_person(request, person_id: int):
 
 
 def _serialize_person(person: Person) -> dict:
-    x = {
+    return {
+        "age": person.age,
         "avatar": person.avatar_url or FALLBACK_AVATAR_URL,
         "date_of_birth": (
             None if not person.date_of_birth else person.date_of_birth.isoformat()
@@ -56,8 +57,6 @@ def _serialize_person(person: Person) -> dict:
         "x": person.x,
         "y": person.y,
     }
-    print("x", x)
-    return x
 
 
 @login_required

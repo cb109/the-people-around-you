@@ -6,10 +6,8 @@
     :style="{'min-width': 480 + 'px'}"
     class="elevation-10"
   >
-    <v-list>
-      <v-list-item
-        v-if="editedPerson"
-      >
+    <v-list v-if="editedPerson">
+      <v-list-item>
         <template v-slot:prepend>
           <div class="pa-2">
             <v-btn
@@ -83,6 +81,8 @@
               label="Date of Birth"
               clearable
               @keyup.enter="emitUpdate()"
+              :hint="editedPerson.age ? `${editedPerson.age} years old` : ''"
+              :persistent-hint="!!editedPerson.age"
             ></v-text-field>
           </v-col>
           <v-col></v-col>
