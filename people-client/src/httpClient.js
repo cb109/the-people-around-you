@@ -30,7 +30,7 @@ function _httpRequest(method, url, payload = null) {
     const formData = new FormData();
     for (const key of Object.keys(payload)) {
       let value = payload[key];
-      const isNamedImageBlobUpload = !!value.name && value.type.startsWith('image');
+      const isNamedImageBlobUpload = !!value && !!value.name && value.type.startsWith('image');
       if (isNamedImageBlobUpload) {
         const blob = value;
         formData.append(key, blob, blob.name);
