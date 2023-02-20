@@ -81,8 +81,7 @@ export default {
     },
     createPerson(opts) {
       const payload = {
-        first_name: opts.firstName,
-        last_name: opts.lastName,
+        name: opts.name,
       };
       this.showAddPersonDialog = false;
       httpPost('/api/persons/create', payload)
@@ -93,8 +92,7 @@ export default {
     },
     updatePerson(opts) {
       const payload = {
-        first_name: opts.firstName,
-        last_name: opts.lastName,
+        name: opts.name,
         date_of_birth: opts.dateOfBirth,
       };
       httpPost('/api/persons/' + opts.personId, payload)

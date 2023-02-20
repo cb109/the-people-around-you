@@ -20,8 +20,7 @@ class User(TimestampedMixin, AbstractUser):
 
 
 class Person(TimestampedMixin, models.Model):
-    first_name = models.CharField(max_length=128, default="")
-    last_name = models.CharField(max_length=128, default="")
+    name = models.CharField(max_length=256, default="")
 
     date_of_birth = models.DateField(default=None, blank=True, null=True)
 
@@ -37,7 +36,7 @@ class Person(TimestampedMixin, models.Model):
     scale = models.FloatField(default=1.0)
 
     def __str__(self):
-        return f"{self.first_name} {self.last_name}"
+        return self.name
 
     @property
     def avatar_url(self):
@@ -63,7 +62,7 @@ class Person(TimestampedMixin, models.Model):
     class Meta:
         constraints = [
             models.UniqueConstraint(
-                fields=["first_name", "last_name", "created_by"],
+                fields=["name", "created_by"],
                 name="unique_person_name_per_creator",
             )
         ]

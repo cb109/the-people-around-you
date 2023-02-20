@@ -16,20 +16,11 @@
         <v-row>
           <v-col>
             <v-text-field
-              ref="firstnameInput"
+              ref="nameInput"
               variant="underlined"
-              v-model="firstName"
+              v-model="name"
               color="primary"
-              label="First Name"
-              @keyup.enter="emitCreate()"
-            ></v-text-field>
-          </v-col>
-          <v-col>
-            <v-text-field
-              variant="underlined"
-              v-model="lastName"
-              color="primary"
-              label="Last Name"
+              label="Name"
               @keyup.enter="emitCreate()"
             ></v-text-field>
           </v-col>
@@ -62,8 +53,7 @@ export default {
   ],
   data() {
     return {
-      firstName: '',
-      lastName: '',
+      name: '',
     };
   },
   computed: {
@@ -77,8 +67,7 @@ export default {
     },
     formIsValid() {
       return (
-        (this.firstName ||'').trim() != '' &&
-        (this.lastName ||'').trim() != ''
+        (this.name ||'').trim() != ''
       );
     },
   },
@@ -86,7 +75,7 @@ export default {
     show: function(show) {
       if (show) {
         this.$nextTick(() => {
-          this.$refs.firstnameInput.focus();
+          this.$refs.nameInput.focus();
         });
       } else {
         this.reset();
@@ -95,16 +84,14 @@ export default {
   },
   methods : {
     reset() {
-      this.firstName = '';
-      this.lastName = '';
+      this.name = '';
     },
     emitCreate() {
       if (!this.formIsValid) {
         return;
       }
       this.$emit('create', {
-        firstName: this.firstName,
-        lastName: this.lastName,
+        name: this.name,
       });
     },
   },

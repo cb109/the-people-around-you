@@ -46,25 +46,13 @@
       </v-row>
       <v-list-item class="pt-2 mt-5">
         <v-row>
-          <!-- First Name -->
           <v-col>
             <v-text-field
-              ref="firstnameInput"
+              ref="nameInput"
               variant="underlined"
-              v-model="firstName"
+              v-model="name"
               color="primary"
-              label="First Name"
-              clearable
-              @keyup.enter="emitUpdate()"
-            ></v-text-field>
-          </v-col>
-          <!-- Last Name -->
-          <v-col>
-            <v-text-field
-              variant="underlined"
-              v-model="lastName"
-              color="primary"
-              label="Last Name"
+              label="Name"
               clearable
               @keyup.enter="emitUpdate()"
             ></v-text-field>
@@ -129,8 +117,7 @@ export default {
   data() {
     return {
       store: store,
-      firstName: '',
-      lastName: '',
+      name: '',
       dateOfBirth: null,
     };
   },
@@ -138,8 +125,7 @@ export default {
     dirty() {
       return (
         !!this.editedPerson && (
-          this.firstName != this.editedPerson.first_name ||
-          this.lastName != this.editedPerson.last_name ||
+          this.name != this.editedPerson.name ||
           this.dateOfBirth != this.editedPerson.date_of_birth
         )
       );
@@ -147,8 +133,7 @@ export default {
     formIsValid() {
       return (
         !!this.editedPerson &&
-        (this.firstName ||'').trim() != '' &&
-        (this.lastName ||'').trim() != ''
+        (this.name ||'').trim() != ''
       );
     },
     editedPerson() {
@@ -158,7 +143,7 @@ export default {
       if (!this.editedPerson) {
         return '';
       }
-      return this.store.editedPerson.first_name + ' ' + this.editedPerson.last_name;
+      return this.store.editedPerson.name;
     },
     show: {
       get() {
@@ -172,8 +157,7 @@ export default {
   watch: {
     editedPerson: function(person) {
       if (person) {
-        this.firstName = person.first_name;
-        this.lastName = person.last_name;
+        this.name = person.name;
         this.dateOfBirth = person.date_of_birth;
       }
     },
@@ -188,8 +172,7 @@ export default {
       }
       this.$emit('update', {
         personId: this.editedPerson.id,
-        firstName: this.firstName,
-        lastName: this.lastName,
+        name: this.name,
         dateOfBirth: this.dateOfBirth,
       });
     },

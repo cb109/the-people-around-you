@@ -42,7 +42,7 @@
                 x: 0,
                 y: 320,
                 width: 300,
-                text: person.first_name + ' ' + person.last_name,
+                text: person.name,
                 align: 'center',
                 fontSize: 36,
                 name: 'person-name',
@@ -101,12 +101,6 @@
     computed: {
       persons() {
         return this.store.persons;
-      },
-      dialogFormIsValid() {
-        return (
-          !!this.firstName && !this.firstName.trim() == '' &&
-          !!this.lastName && !this.lastName.trim() == ''
-        );
       },
       selectedNodes: {
         get() {
