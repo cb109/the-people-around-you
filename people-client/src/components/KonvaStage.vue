@@ -341,10 +341,10 @@
 
         var x1, y1, x2, y2;
         stage.on('mousedown touchstart', (e) => {
-          // // do nothing if we mousedown on any shape
-          // if (e.target !== stage) {
-          //   return;
-          // }
+          // do nothing if we mousedown on any shape
+          if (e.target !== stage) {
+            return;
+          }
           e.evt.preventDefault();
 
           vm.activeSelectionRectangle = true;
