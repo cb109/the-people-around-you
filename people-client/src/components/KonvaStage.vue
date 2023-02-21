@@ -286,8 +286,6 @@
         const personImageNode = stage.findOne('#' + personId);
         stage.fire('click', {target: personImageNode, evt: {}}, true);
 
-        this.zoom = initialZoom;
-        stage.scale({x: this.zoom , y: this.zoom});
         stage.x(personImageNode.x() + stage.width() / 3);
         stage.y(personImageNode.y() + stage.height() / 2);
       },
