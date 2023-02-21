@@ -76,7 +76,7 @@
   const MOUSE_BUTTON_MIDDLE = 1;
   Konva.dragButtons = [MOUSE_BUTTON_LEFT];
 
-  const initialZoom = 0.25;
+  const initialZoom = 0.5;
 
   export default {
     data() {
@@ -285,6 +285,11 @@
         const stage = this.getStage();
         const personImageNode = stage.findOne('#' + personId);
         stage.fire('click', {target: personImageNode, evt: {}}, true);
+
+        this.zoom = initialZoom;
+        stage.scale({x: this.zoom , y: this.zoom});
+        stage.x(personImageNode.x() + stage.width() / 3);
+        stage.y(personImageNode.y() + stage.height() / 2);
       },
       setupSelection() {
         const vm = this;
