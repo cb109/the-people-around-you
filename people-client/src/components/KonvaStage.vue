@@ -92,6 +92,7 @@
         },
         zoom: initialZoom,
         transformer: {nodes: (_) => []},
+        activeSelectionRectangle: false,
 
         store: store,
 
@@ -255,6 +256,10 @@
           // stop default scrolling
           e.evt.preventDefault();
 
+          if (vm.activeSelectionRectangle) {
+            return;
+          }
+
           var oldScale = stage.scaleX();
           var pointer = stage.getPointerPosition();
 
@@ -328,8 +333,87 @@
         layer.add(this.transformer);
         this.selectedNodes = [];
 
+        var selectionRectangle = new Konva.Rect({
+          fill: 'rgba(0, 0, 255, 0.5)',
+          visible: false,
+        });
+        layer.add(selectionRectangle);
+
+        var x1, y1, x2, y2;
+        stage.on('mousedown touchstart', (e) => {
+          // // do nothing if we mousedown on any shape
+          // if (e.target !== stage) {
+          //   return;
+          // }
+          e.evt.preventDefault();
+
+          vm.activeSelectionRectangle = true;
+
+          const offsetX = localStorage.getItem('stage.x') / this.zoom;
+          const offsetY = localStorage.getItem('stage.y') / this.zoom;
+
+          x1 = (offsetX * -1) + stage.getPointerPosition().x;
+          y1 = (offsetY * -1) + stage.getPointerPosition().y;
+
+          x2 = (offsetX * -1) + stage.getPointerPosition().x;
+          y2 = (offsetY * -1) + stage.getPointerPosition().y;
+
+          selectionRectangle.visible(true);
+          selectionRectangle.width(0);
+          selectionRectangle.height(0);
+        });
+
+        stage.on('mousemove touchmove', (e) => {
+          // do nothing if we didn't start selection
+          if (!selectionRectangle.visible()) {
+            return;
+          }
+          e.evt.preventDefault();
+
+          const offsetX = localStorage.getItem('stage.x') / this.zoom;
+          const offsetY = localStorage.getItem('stage.y') / this.zoom;
+
+          x2 = (offsetX * -1) + stage.getPointerPosition().x;
+          y2 = (offsetY * -1) + stage.getPointerPosition().y;
+
+          selectionRectangle.setAttrs({
+            x: Math.min(x1, x2) / this.zoom,
+            y: Math.min(y1, y2) / this.zoom,
+            width: Math.abs(x2 - x1) / this.zoom,
+            height: Math.abs(y2 - y1) / this.zoom,
+          });
+        });
+
+        stage.on('mouseup touchend', (e) => {
+          // do nothing if we didn't start selection
+          if (!selectionRectangle.visible()) {
+            return;
+          }
+          e.evt.preventDefault();
+
+          vm.activeSelectionRectangle = false;
+
+          // update visibility in timeout, so we can check it in click event
+          setTimeout(() => {
+            selectionRectangle.visible(false);
+          });
+
+          var groups = stage.find('.person-group');
+          var selectionRectangleBoundingBox = selectionRectangle.getClientRect();
+          vm.selectedNodes = groups.filter((group) =>
+            Konva.Util.haveIntersection(
+              selectionRectangleBoundingBox,
+              group.getClientRect()
+            )
+          );
+        });
+
         // clicks should select/deselect shapes
         stage.on('click tap', function (e) {
+
+          if (vm.activeSelectionRectangle) {
+            return;
+          }
 
           // if click on empty area - remove all selections
           if (e.target === stage) {
