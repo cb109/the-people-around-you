@@ -400,12 +400,19 @@
 
           var groups = stage.find('.person-group');
           var selectionRectangleBoundingBox = selectionRectangle.getClientRect();
-          vm.selectedNodes = groups.filter((group) =>
+          const selected = groups.filter((group) =>
             Konva.Util.haveIntersection(
               selectionRectangleBoundingBox,
               group.getClientRect()
             )
           );
+
+          const metaPressed = e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey;
+          if (metaPressed) {
+            vm.selectedNodes = vm.selectedNodes.concat(selected);
+          } else {
+            vm.selectedNodes = selected;
+          }
         });
 
         // clicks should select/deselect shapes
