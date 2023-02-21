@@ -291,11 +291,8 @@
         const stage = this.getStage();
         const layer = this.$refs.layer.getNode();
 
-        const WIDTH_STEPS = [
-          300, 450, 600, 750, 900, 1050, 1200
-        ]
-        const MIN_WIDTH = WIDTH_STEPS[0];
-        const MAX_WIDTH = 2400;
+        const MIN_WIDTH = 100;
+        const MAX_WIDTH = 3000;
 
         this.transformer = new Konva.Transformer({
           rotateEnabled: false,
@@ -318,22 +315,6 @@
               Math.abs(newBoundBox.width) > MAX_WIDTH * vm.zoom
             ) {
               return oldBoundBox;
-            }
-
-            for (let i = 0; i < WIDTH_STEPS.length; i++) {
-              let previousStep = MIN_WIDTH * vm.zoom;
-              if (i > 0) {
-                previousStep = WIDTH_STEPS[i - 1] * vm.zoom;
-              }
-              const step = WIDTH_STEPS[i] * vm.zoom;
-              if (newBoundBox.width >= previousStep && newBoundBox.width <= step) {
-                var bb = Object.assign({}, oldBoundBox);
-                var ratio = newBoundBox.width / newBoundBox.height;
-                var newWidth = (step - newBoundBox.width) <= (previousStep - newBoundBox.width) ? step : previousStep;
-                bb.width = newWidth * ratio;
-                bb.height = newWidth;
-                return bb;
-              }
             }
 
             return newBoundBox;
