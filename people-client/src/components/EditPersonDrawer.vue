@@ -59,7 +59,7 @@
           </v-col>
         </v-row>
         <v-row>
-          <!-- Date of Birth Name -->
+          <!-- Date of Birth -->
           <v-col>
             <v-text-field
               variant="underlined"
@@ -73,7 +73,20 @@
               :persistent-hint="!!editedPerson.age"
             ></v-text-field>
           </v-col>
-          <v-col></v-col>
+          <!-- Date of Death -->
+          <v-col>
+            <v-text-field
+              v-if="editedPerson.date_of_death"
+              readonly
+              variant="plain"
+              type="date"
+              :value="editedPerson.date_of_death"
+              color="primary"
+              label="Deceased"
+              prepend-icon="mdi-flower-tulip-outline"
+              style="user-select: none; pointer-events: none"
+            ></v-text-field>
+          </v-col>
         </v-row>
       </v-list-item>
       <v-slide-x-reverse-transition>

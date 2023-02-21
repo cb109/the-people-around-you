@@ -49,6 +49,9 @@ def _serialize_person(person: Person) -> dict:
         "date_of_birth": (
             None if not person.date_of_birth else person.date_of_birth.isoformat()
         ),
+        "date_of_death": (
+            None if not person.date_of_death else person.date_of_death.isoformat()
+        ),
         "name": person.name,
         "id": person.id,
         "image": None,

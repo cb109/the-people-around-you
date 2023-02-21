@@ -15,6 +15,7 @@ class PersonAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "date_of_birth",
+        "date_of_death",
         "created_by",
         "avatar_preview",
     )

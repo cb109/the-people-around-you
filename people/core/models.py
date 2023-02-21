@@ -23,6 +23,7 @@ class Person(TimestampedMixin, models.Model):
     name = models.CharField(max_length=256, default="")
 
     date_of_birth = models.DateField(default=None, blank=True, null=True)
+    date_of_death = models.DateField(default=None, blank=True, null=True)
 
     created_by = models.ForeignKey(
         User, default=None, null=True, on_delete=models.CASCADE
@@ -53,7 +54,7 @@ class Person(TimestampedMixin, models.Model):
             return None
 
         # https://stackoverflow.com/a/9754466
-        today = date.today()
+        today = self.date_of_death or date.today()
         born = self.date_of_birth
         return (
             today.year - born.year - ((today.month, today.day) < (born.month, born.day))
