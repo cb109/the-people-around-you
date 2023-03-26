@@ -15,7 +15,7 @@ FALLBACK_AVATAR_URL = "https://i.imgur.com/cGonva6.png"
 class PersonForm(forms.ModelForm):
     class Meta:
         model = Person
-        fields = ("name", "date_of_birth")
+        fields = ("name", "details", "date_of_birth")
 
 
 @login_required
@@ -52,6 +52,7 @@ def _serialize_person(person: Person) -> dict:
         "date_of_death": (
             None if not person.date_of_death else person.date_of_death.isoformat()
         ),
+        "details": person.details,
         "name": person.name,
         "id": person.id,
         "image": None,

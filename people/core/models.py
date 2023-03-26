@@ -22,6 +22,8 @@ class User(TimestampedMixin, AbstractUser):
 class Person(TimestampedMixin, models.Model):
     name = models.CharField(max_length=256, default="")
 
+    details = models.TextField(default="", blank=True)
+
     date_of_birth = models.DateField(default=None, blank=True, null=True)
     date_of_death = models.DateField(default=None, blank=True, null=True)
 

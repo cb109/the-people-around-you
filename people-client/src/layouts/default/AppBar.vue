@@ -93,10 +93,10 @@ export default {
     updatePerson(opts) {
       const payload = {
         name: opts.name,
+        details: opts.details,
+        date_of_birth: opts.dateOfBirth || '',
+        date_of_death: opts.dateOfDeath || '',
       };
-      if (opts.dateOfBirth) {
-        payload.date_of_birth = opts.dateOfBirth;
-      }
       httpPost('/api/persons/' + opts.personId, payload)
         .then((response) => response.json())
         .then((person) => {
