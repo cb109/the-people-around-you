@@ -12,6 +12,7 @@
     "@mdi/font": "7.0.96",
     "core-js": "^3.8.3",
     "konva": "^8.4.2",
+    "md-editor-v3": "^2.11.0",
     "pinia": "^2.0.23",
     "roboto-fontface": "*",
     "vue": "^3.2.13",

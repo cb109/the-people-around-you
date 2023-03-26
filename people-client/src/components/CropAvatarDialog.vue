@@ -21,6 +21,7 @@
           v-model="imageModel"
           accept="image/*"
           label="Browse image file"
+          variant="outlined"
           clearable
         ></v-file-input>
         <cropper
