@@ -3,7 +3,7 @@
     v-model="show"
     permanent
     location="right"
-    :style="{'min-width': 560 + 'px'}"
+    :style="{'min-width': 640 + 'px'}"
     class="elevation-10"
   >
     <v-list v-if="editedPerson">
@@ -13,7 +13,7 @@
             <v-btn
               icon
               flat
-              style="position: absolute; top: 0px; left: 8px;"
+              style="position: absolute; top: 0px; right: 8px;"
               @click="close()"
             >
               <v-icon size="large">mdi-close</v-icon>
@@ -40,9 +40,9 @@
           variant="plain"
           size="small"
           rounded="pill"
-          style="position: absolute; bottom: 16px; right: 64px;"
+          style="position: absolute; bottom: 16px; right: 96px;"
           @click="$emit('show-avatar-dialog')"
-        >Change</v-btn>
+        >Change Avatar</v-btn>
       </v-row>
       <v-list-item class="pt-2 mt-5">
         <!-- Name -->
@@ -111,16 +111,42 @@
         <!-- Details -->
         <v-row>
           <v-col>
-            <v-textarea
-              variant="outlined"
+            <v-btn
+              variant="plain"
+              size="small"
+              rounded="pill"
+              class="mb-3"
+              @click="detailsEditable = !detailsEditable"
+            >
+              <span v-if="!detailsEditable">Edit Details</span>
+              <span v-else>Close Editor</span>
+            </v-btn>
+            <v-slide-x-transition>
+              <v-btn
+                v-if="detailsEditable"
+                variant="plain"
+                size="small"
+                rounded="pill"
+                class="mb-3"
+                @click="detailsPreview = !detailsPreview"
+              >
+                Toggle Preview
+              </v-btn>
+            </v-slide-x-transition>
+            <MdEditor
+              :key="detailsEditable + detailsPreview"
               v-model="details"
-              color="primary"
-              label="Details"
-              @keyup.enter="emitUpdate()"
-            ></v-textarea>
+              language="en-US"
+              :previewOnly="!detailsEditable"
+              :preview="!detailsEditable || detailsPreview"
+              previewTheme="github"
+              codeTheme="github"
+              noUploadImg
+            />
           </v-col>
         </v-row>
       </v-list-item>
+      <!-- Save Button -->
       <v-slide-x-reverse-transition>
         <v-list-item v-if="dirty">
           <div style="display: flex; justify-content: flex-end">
@@ -140,10 +166,16 @@
 </template>
 
 <script>
+import MdEditor from 'md-editor-v3';
+import 'md-editor-v3/lib/style.css';
+
 import { useAppStore } from '@/store/app';
 const store = useAppStore();
 
 export default {
+  components: {
+    MdEditor,
+  },
   props: {
     modelValue: {
       type: Boolean,
@@ -163,6 +195,9 @@ export default {
     return {
       store: store,
       showDeceasedInput: false,
+
+      detailsEditable: false,
+      detailsPreview: false,
 
       name: '',
       details: '',
@@ -221,10 +256,17 @@ export default {
     close() {
       this.$emit('update:modelValue', false);
     },
+    resetDetailsEditor() {
+      this.detailsEditable = false;
+      this.detailsPreview = false;
+    },
     emitUpdate() {
       if (!this.formIsValid) {
         return;
       }
+
+      this.resetDetailsEditor();
+
       this.$emit('update', {
         personId: this.editedPerson.id,
         name: this.name,

@@ -918,6 +918,11 @@ make-dir@^3.0.2:
   dependencies:
     semver "^6.0.0"
 
+md-editor-v3@^2.11.0:
+  version "2.11.0"
+  resolved "https://registry.yarnpkg.com/md-editor-v3/-/md-editor-v3-2.11.0.tgz#80bc8f53bafc20961909742af4abe249898fd1b9"
+  integrity sha512-k94hCH7PUEOfZkKhWMfv7WHbJOetN59eTSPZoMutXZ3NLKNa8GqEdllHSfdy6XytnVSHlQBbQrmMu7PYyIruvQ==
+
 minimatch@^3.0.5, minimatch@^3.1.1, minimatch@^3.1.2:
   version "3.1.2"
   resolved "https://registry.yarnpkg.com/minimatch/-/minimatch-3.1.2.tgz#19cd194bfd3e428f049a70817c038d89ab4be35b"
