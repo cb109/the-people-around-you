@@ -2,6 +2,8 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.utils.safestring import mark_safe
 
+from simple_history.admin import SimpleHistoryAdmin
+
 from people.core.models import User, Person, Image, PersonImage
 
 admin.site.site_header = "The People Around You - Administration"
@@ -11,7 +13,7 @@ class CustomUserAdmin(UserAdmin):
     pass
 
 
-class PersonAdmin(admin.ModelAdmin):
+class PersonAdmin(SimpleHistoryAdmin):
     list_display = (
         "name",
         "date_of_birth",
