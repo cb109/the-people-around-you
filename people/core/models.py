@@ -5,6 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from django.core.files.base import ContentFile
 from django.db import models
 from PIL import Image as PIL_Image
+from simple_history.models import HistoricalRecords
 
 
 class TimestampedMixin(models.Model):
@@ -37,6 +38,8 @@ class Person(TimestampedMixin, models.Model):
     y = models.FloatField(default=0)
     angle = models.FloatField(default=0)
     scale = models.FloatField(default=1.0)
+
+    history = HistoricalRecords()
 
     def __str__(self):
         return self.name
