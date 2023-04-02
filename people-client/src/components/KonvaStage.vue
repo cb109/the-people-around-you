@@ -1,64 +1,95 @@
 <template>
-  <v-stage
-    ref="stage"
-    :config="stageConfig"
-    @dragend="onStageDragEnd"
-  >
-    <v-layer ref="layer">
-      <template
-        v-for="(person, personIndex) in persons"
-        :key="'person-' + personIndex"
-      >
-        <v-group
-          :config="{
-            id: String(person.id),
-            draggable: isSelectedPerson(person),
-            x: person.x,
-            y: person.y,
-            scaleX: person.scale,
-            scaleY: person.scale,
-            name: 'person-group',
-          }"
-          @dragend="onPersonTransformed($event, person)"
-          @touchend="onPersonTransformed($event, person)"
-          @transformend="onPersonTransformed($event, person)"
+  <div>
+    <!-- Konva JS Stage (canvas) -->
+    <v-stage
+      ref="stage"
+      :config="stageConfig"
+      @dragend="onStageDragEnd"
+    >
+      <v-layer ref="layer">
+        <template
+          v-for="(person, personIndex) in persons"
+          :key="'person-' + personIndex"
         >
           <v-group
             :config="{
-              clipFunc: clipFuncCircle,
+              id: String(person.id),
+              draggable: isSelectedPerson(person),
+              x: person.x,
+              y: person.y,
+              scaleX: person.scale,
+              scaleY: person.scale,
+              name: 'person-group',
             }"
+            @dragend="onPersonTransformed($event, person)"
+            @touchend="onPersonTransformed($event, person)"
+            @transformend="onPersonTransformed($event, person)"
           >
-            <v-image
-              :key="person.avatar"
+            <v-group
               :config="{
-                image: person.image,
-                name: 'person-image',
-                opacity: !!person.date_of_death ? 0.5 : 1.0,
+                clipFunc: clipFuncCircle,
               }"
-            />
+            >
+              <v-image
+                :key="person.avatar"
+                :config="{
+                  image: person.image,
+                  name: 'person-image',
+                  opacity: !!person.date_of_death ? 0.5 : 1.0,
+                }"
+              />
+            </v-group>
+            <v-group>
+              <v-text
+                :config="{
+                  x: 0,
+                  y: 320,
+                  width: 300,
+                  text: person.name,
+                  align: 'center',
+                  fontSize: 36,
+                  name: 'person-name',
+                  fill: isSelectedPerson(person) ? 'red' : 'black',
+                  opacity: !!person.date_of_death ? 0.5 : 1.0,
+                }"
+              />
+            </v-group>
           </v-group>
-          <v-group>
-            <v-text
-              :config="{
-                x: 0,
-                y: 320,
-                width: 300,
-                text: person.name,
-                align: 'center',
-                fontSize: 36,
-                name: 'person-name',
-                fill: isSelectedPerson(person) ? 'red' : 'black',
-                opacity: !!person.date_of_death ? 0.5 : 1.0,
-              }"
-            />
-          </v-group>
-        </v-group>
-      </template>
-    </v-layer>
-  </v-stage>
-  <!-- <v-container class="fill-height">
-
-  </v-container> -->
+        </template>
+      </v-layer>
+    </v-stage>
+    <!-- Other UI Stuff -->
+    <v-scale-transition>
+      <div
+        v-show="selectedNodes.length == 1 && !!enableContextMenuForPerson"
+      >
+        <v-menu
+          v-if="groupContextMenuLeft != -1 && groupContextMenuTop != -1"
+          v-model="enableContextMenu"
+          style="
+            position: absolute;
+            z-index: 99999;
+          "
+          :style="{
+            left: groupContextMenuLeft,
+            top: groupContextMenuTop,
+          }"
+        >
+          <v-list v-model="menu">
+            <v-list-item
+              v-if="!!enableContextMenuForPerson"
+              @click="store.setEditedPerson(enableContextMenuForPerson)"
+            >
+              <v-avatar>
+                <v-icon icon="mdi-pencil"></v-icon>
+              </v-avatar>
+              Edit <strong class="nowrap">{{ enableContextMenuForPerson.name }}</strong>
+            </v-list-item>
+          </v-list>
+        </v-menu>
+      </div>
+    </v-scale-transition>
+  </div>
 </template>
 
 <script>
@@ -94,6 +125,12 @@
         transformer: {nodes: (_) => []},
         activeSelectionRectangle: false,
 
+        enableContextMenu: true,
+        enableContextMenuForPerson: null,
+        menu: false,
+        groupContextMenuTop: -1,
+        groupContextMenuLeft: -1,
+
         store: store,
 
         // cropperjs
@@ -118,6 +155,13 @@
           }
           this.transformer.nodes(nodes);
         },
+      },
+    },
+    watch: {
+      'selectedNodes': function() {
+        if (!this.selectedNodes || this.selectedNodes.length == 0) {
+          this.resetContextMenu();
+        }
       },
     },
     created() {
@@ -152,8 +196,16 @@
       this.setupStageDragging();
       this.setupZoom();
       this.setupSelection();
+      this.setupGroupContextMenu();
     },
     methods: {
+      resetContextMenu() {
+        this.enableContextMenu = false;
+        this.enableContextMenuForPerson = null;
+      },
+      resetSelectedNodes() {
+        this.selectedNodes = [];
+      },
       onStageDragEnd() {
         this.rememberStageZoomAndPosition();
       },
@@ -247,6 +299,32 @@
           }
         });
       },
+      setupGroupContextMenu() {
+        const vm = this;
+        const stage = this.getStage();
+        stage.on('contextmenu', function (e) {
+          if (e.target === stage) {
+            return;
+          }
+
+          // Prevent default behavior when something specific was targetted..
+          e.evt.preventDefault();
+
+          let group;
+          if (e.target.hasName('person-image') || e.target.hasName('person-name')) {
+            group = e.target.getParent().getParent();
+          }
+          if (group) {
+            vm.enableContextMenuForPerson = vm.getPersonById(group.attrs.id);
+            vm.enableContextMenu = true;
+          }
+
+          // Show menu
+          const containerRect = stage.container().getBoundingClientRect();
+          vm.groupContextMenuTop = containerRect.top + stage.getPointerPosition().y + 4 + 'px';
+          vm.groupContextMenuLeft = containerRect.left + stage.getPointerPosition().x + 4 + 'px';
+        });
+      },
       setupZoom() {
         const vm = this;
         const stage = this.getStage();
@@ -288,13 +366,18 @@
           stage.position(newPos);
         });
       },
-      selectPerson(personId) {
+      getPersonById(personId) {
+        return this.store.persons.filter(person => person.id == personId)[0];
+      },
+      selectPerson(personId, centerOnStage = true) {
         const stage = this.getStage();
         const personImageNode = stage.findOne('#' + personId);
         stage.fire('click', {target: personImageNode, evt: {}}, true);
 
-        stage.x(personImageNode.x() + stage.width() / 3);
-        stage.y(personImageNode.y() + stage.height() / 2);
+        if (centerOnStage) {
+          stage.x(personImageNode.x() + stage.width() / 3);
+          stage.y(personImageNode.y() + stage.height() / 2);
+        }
       },
       setupSelection() {
         const vm = this;
@@ -331,7 +414,7 @@
           },
         });
         layer.add(this.transformer);
-        this.selectedNodes = [];
+        this.resetSelectedNodes();
 
         var selectionRectangle = new Konva.Rect({
           fill: 'rgba(0, 0, 255, 0.5)',
@@ -424,7 +507,7 @@
 
           // if click on empty area - remove all selections
           if (e.target === stage) {
-            vm.selectedNodes = [];
+            vm.resetSelectedNodes();
             return;
           }
 
@@ -464,12 +547,12 @@
             vm.selectedNodes = nodes;
           }
 
-          if (vm.selectedNodes.length === 1) {
-            const person = vm.persons.filter(person => person.id == group.id())[0];
-            vm.onPersonSelected(e, person);
-          } else {
-            vm.store.setEditedPerson(null);
-          }
+          // if (vm.selectedNodes.length === 1) {
+          //   const person = vm.persons.filter(person => person.id == group.id())[0];
+          //   vm.onPersonSelected(e, person);
+          // } else {
+          //   vm.store.setEditedPerson(null);
+          // }
         });
       },
     }
