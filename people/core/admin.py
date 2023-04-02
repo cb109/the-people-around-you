@@ -21,6 +21,14 @@ class PersonAdmin(SimpleHistoryAdmin):
         "created_by",
         "avatar_preview",
     )
+    search_fields = (
+        "created_by__first_name",
+        "created_by__last_name",
+        "created_by__username",
+        "date_of_birth",
+        "date_of_death",
+        "name",
+    )
 
     @mark_safe
     def avatar_preview(self, person):
