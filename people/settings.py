@@ -42,6 +42,8 @@ ALLOWED_HOSTS = [
 # CORS_ALLOW_CREDENTIALS = True
 # SESSION_COOKIE_SAMESITE = "None"
 
+SESSION_COOKIE_AGE = 60 * 60 * 24 * 365  # One year in seconds
+
 # Application definition
 
 INSTALLED_APPS = [
