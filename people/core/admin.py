@@ -39,6 +39,7 @@ class PersonAdmin(SimpleHistoryAdmin):
 
 class PersonImageAdmin(admin.ModelAdmin):
     list_display = ("person", "image", "image_preview", "created_at")
+    autocomplete_fields = ("person", "image")
 
     @mark_safe
     def image_preview(self, person_image):
@@ -49,6 +50,7 @@ class PersonImageAdmin(admin.ModelAdmin):
 
 class ImageAdmin(admin.ModelAdmin):
     list_display = ("file", "preview_preview", "created_at")
+    search_fields = ("file", "created_at")
 
     @mark_safe
     def preview_preview(self, image):
