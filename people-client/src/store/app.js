@@ -4,6 +4,7 @@ export const useAppStore = defineStore('app', {
   state: () => ({
     persons: [],
     editedPerson: null,
+    personToJumpTo: null,
   }),
   actions: {
     setPersons(persons) {
@@ -23,5 +24,8 @@ export const useAppStore = defineStore('app', {
     setEditedPerson(person) {
       this.editedPerson = person;
     },
+    jumpToPerson(person) {
+      this.personToJumpTo = person;
+    }
   },
 });

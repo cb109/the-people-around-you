@@ -101,4 +101,9 @@ def delete_person(request, person_id: int):
 @require_http_methods(("GET",))
 def list_persons(request):
     persons = Person.objects.filter(created_by=request.user)
+
+    search = request.GET.get("search", "").lower()
+    if search:
+        persons = persons.filter(name__icontains=search).order_by("name")
+
     return JsonResponse([_serialize_person(person) for person in persons], safe=False)

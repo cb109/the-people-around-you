@@ -13,18 +13,14 @@
         </v-btn>
       </v-toolbar>
       <v-card-text>
-        <v-row>
-          <v-col>
-            <v-text-field
-              ref="nameInput"
-              variant="underlined"
-              v-model="name"
-              color="primary"
-              label="Name"
-              @keyup.enter="emitCreate()"
-            ></v-text-field>
-          </v-col>
-        </v-row>
+        <v-text-field
+          ref="nameInput"
+          variant="underlined"
+          v-model="name"
+          color="primary"
+          label="Name"
+          @keyup.enter="emitCreate()"
+        ></v-text-field>
       </v-card-text>
       <v-card-actions>
         <v-btn

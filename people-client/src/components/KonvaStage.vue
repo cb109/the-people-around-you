@@ -158,6 +158,14 @@
       },
     },
     watch: {
+      'store.personToJumpTo': function(person) {
+        if (!person) {
+          return;
+        }
+        this.selectPerson(person);
+        // this.store.setEditedPerson(person);
+        this.store.jumpToPerson(null);
+      },
       'selectedNodes': function() {
         if (!this.selectedNodes || this.selectedNodes.length == 0) {
           this.resetContextMenu();
@@ -170,7 +178,7 @@
         if (opts.name == 'addPerson' || opts.name == 'updatePerson') {
           const person = opts.args[0];
           const doSelect = opts.name == 'addPerson';
-          const callback = doSelect ? () => vm.$nextTick(() => vm.selectPerson(person.id)) : null;
+          const callback = doSelect ? () => vm.$nextTick(() => vm.selectPerson(person)) : null;
           vm.loadPersonImage(person, callback);
         }
       });
@@ -185,8 +193,8 @@
     mounted() {
       // Apply remembered stage zoom and position.
       this.zoom = localStorage.getItem('stage.zoom') || initialZoom;
-      const stageX = (localStorage.getItem('stage.x') || 0)  / this.zoom;
-      const stageY = (localStorage.getItem('stage.y') || 0)  / this.zoom;
+      const stageX = (localStorage.getItem('stage.x') || 0) / this.zoom;
+      const stageY = (localStorage.getItem('stage.y') || 0) / this.zoom;
 
       const stage = this.getStage();
       stage.scale({x: this.zoom , y: this.zoom});
@@ -369,14 +377,25 @@
       getPersonById(personId) {
         return this.store.persons.filter(person => person.id == personId)[0];
       },
-      selectPerson(personId, centerOnStage = true) {
+      selectPerson(person, centerOnStage = true) {
         const stage = this.getStage();
-        const personImageNode = stage.findOne('#' + personId);
+        const personImageNode = stage.findOne('#' + person.id);
         stage.fire('click', {target: personImageNode, evt: {}}, true);
 
         if (centerOnStage) {
-          stage.x(personImageNode.x() + stage.width() / 3);
-          stage.y(personImageNode.y() + stage.height() / 2);
+          // Zoom out a bit more than initially, and zoom in more when
+          // the person circle is small.
+          this.zoom = (initialZoom / 2) * (2.33 / person.scale);
+          stage.scale({x: this.zoom , y: this.zoom});
+
+          stage.x(
+            (-1 * personImageNode.x() * this.zoom) + (stage.width() / 2)
+          );
+          stage.y(
+            (-1 * personImageNode.y() * this.zoom) + (stage.height() / 2)
+          );
+
+          this.rememberStageZoomAndPosition();
         }
       },
       setupSelection() {

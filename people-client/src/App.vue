@@ -10,4 +10,8 @@
 .dbg, .dbg *, [dbg], [dbg] * {
   outline: 1px solid red;
 }
+
+.clickable {
+  cursor: pointer;
+}
 </style>

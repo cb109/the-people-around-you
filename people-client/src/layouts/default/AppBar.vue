@@ -9,6 +9,13 @@
           rounded
           @click="showAddPersonDialog = !showAddPersonDialog"
         >Add Person</v-btn>
+        <v-btn
+          color="primary"
+          prepend-icon="mdi-magnify"
+          size="large"
+          rounded
+          @click="showSearchPersonDialog = !showSearchPersonDialog"
+        >Search</v-btn>
       </v-app-bar-title>
     </v-app-bar>
     <EditPersonDrawer
@@ -19,6 +26,10 @@
     <AddPersonDialog
       v-model="showAddPersonDialog"
       @create="createPerson"
+    />
+    <SearchPersonDialog
+      v-model="showSearchPersonDialog"
+      @jump="jumpToPerson"
     />
     <CropAvatarDialog
       v-model="showCropAvatarDialog"
@@ -35,17 +46,20 @@ import { httpPost } from '@/httpClient.js';
 import AddPersonDialog from '@/components/AddPersonDialog.vue';
 import CropAvatarDialog from '@/components/CropAvatarDialog.vue';
 import EditPersonDrawer from '@/components/EditPersonDrawer.vue';
+import SearchPersonDialog from '@/components/SearchPersonDialog.vue';
 
 export default {
   components: {
     AddPersonDialog,
     CropAvatarDialog,
     EditPersonDrawer,
+    SearchPersonDialog,
   },
   data() {
     return {
       store: store,
       showAddPersonDialog: false,
+      showSearchPersonDialog: false,
       showCropAvatarDialog: false,
     };
   },
@@ -78,6 +92,9 @@ export default {
         .finally(() => {
           this.showCropAvatarDialog = false;
         });
+    },
+    jumpToPerson(person) {
+      this.store.jumpToPerson(person);
     },
     createPerson(opts) {
       const payload = {

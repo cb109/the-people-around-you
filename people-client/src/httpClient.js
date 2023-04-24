@@ -43,7 +43,10 @@ function _httpRequest(method, url, payload = null) {
   return fetch(API_BASE_URL + url, data);
 }
 
-export function httpGet(url) {
+export function httpGet(url, query = null) {
+  if (query) {
+    url += '?' + new URLSearchParams(query).toString();
+  }
   return _httpRequest('GET', url);
 }
 
