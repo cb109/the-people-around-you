@@ -86,6 +86,7 @@ export default {
     show: function(show) {
       if (show) {
         this.$nextTick(() => {
+          this.searchText = '';
           this.$refs.searchInput.focus();
         });
       } else {

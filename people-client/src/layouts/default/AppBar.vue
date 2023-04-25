@@ -61,6 +61,7 @@ export default {
       showAddPersonDialog: false,
       showSearchPersonDialog: false,
       showCropAvatarDialog: false,
+      keyDownEventListener: null,
     };
   },
   computed: {
@@ -74,6 +75,19 @@ export default {
         }
       },
     },
+  },
+  created() {
+    const vm = this;
+    if (this.keyDownEventListener) {
+      this.removeEventListener('keydown', this.keyDownEventListener);
+    }
+    this.keyDownEventListener = document.addEventListener('keydown', function(e) {
+      // Ctrl + F
+      if (e.ctrlKey && e.code == 'KeyF') {
+        e.preventDefault();
+        vm.showSearchPersonDialog = true;
+      }
+    });
   },
   methods: {
     uploadCroppedAvatar(croppedImageUrl) {
