@@ -19,7 +19,7 @@
           v-model="searchText"
           color="primary"
           label="Search by Name"
-          @change="listPersonsForSearchTerms()"
+          @update:modelValue="debouncedListPersonsForSearchTerms()"
         ></v-text-field>
       </v-card-text>
       <v-card-actions v-show="persons.length > 0">
@@ -52,6 +52,7 @@
 </template>
 
 <script>
+import debounce from 'lodash.debounce';
 
 import { httpGet } from '@/httpClient.js';
 
@@ -110,6 +111,9 @@ export default {
         });
       });
     },
+    debouncedListPersonsForSearchTerms: debounce(function() {
+      this.listPersonsForSearchTerms();
+    }, 300),
     jumpToPerson(person) {
       this.$emit('jump', person);
       this.$emit('update:modelValue', false);
