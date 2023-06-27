@@ -35,7 +35,6 @@
                 :config="{
                   image: person.image,
                   name: 'person-image',
-                  opacity: !!person.date_of_death ? 0.5 : 1.0,
                 }"
               />
             </v-group>
@@ -50,7 +49,6 @@
                   fontSize: 36,
                   name: 'person-name',
                   fill: isSelectedPerson(person) ? 'red' : 'black',
-                  opacity: !!person.date_of_death ? 0.5 : 1.0,
                 }"
               />
             </v-group>
