@@ -1,4 +1,6 @@
 *.py[cod]
 venv/
+dev_backend.*
+dev_frontend.*
 media/
 db.sqlite3
