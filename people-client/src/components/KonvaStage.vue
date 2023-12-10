@@ -172,6 +172,7 @@
     },
     created() {
       const vm = this;
+
       this.store.$onAction(function(opts) {
         if (opts.name == 'addPerson' || opts.name == 'updatePerson') {
           const person = opts.args[0];
@@ -182,6 +183,11 @@
       });
 
       this.fetchPersons().then((response) => {
+        if (response.redirected && response.url.includes('login/?next=')) {
+          window.location.replace('/admin/login/?next=/');
+          return;
+        }
+
         response.json().then((persons) => {
           this.store.setPersons(persons);
           this.loadPersonImages();
