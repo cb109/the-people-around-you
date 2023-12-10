@@ -8,18 +8,16 @@
   >
     <v-list v-if="editedPerson">
       <v-list-item>
-        <template v-slot:prepend>
-          <div class="pa-2">
-            <v-btn
-              icon
-              flat
-              style="position: absolute; top: 0px; right: 8px;"
-              @click="close()"
-            >
-              <v-icon size="large">mdi-close</v-icon>
-            </v-btn>
-          </div>
-        </template>
+        <div class="pa-2">
+          <v-btn
+            icon
+            flat
+            style="position: fixed; top: 2px; right: 20px; z-index: 1000;"
+            @click="close()"
+          >
+            <v-icon size="large">mdi-close</v-icon>
+          </v-btn>
+        </div>
       </v-list-item>
       <v-row
         justify="center"
