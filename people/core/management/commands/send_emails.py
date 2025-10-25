@@ -67,14 +67,14 @@ class Command(BaseCommand):
                     f"""
                     {event_descriptions_text}
 
-                    Go to page: {settings.SITE_URL}
+                    Go to page: <a href='{settings.SITE_URL}' target="_blank">{settings.SITE_URL}</a>
                 """
                 ),
                 html=textwrap.dedent(
                     f"""
                     {event_descriptions_html}
 
-                    Go to page: {settings.SITE_URL}
+                    Go to page: <a href='{settings.SITE_URL}' target="_blank">{settings.SITE_URL}</a>
                 """
                 ),
             )
