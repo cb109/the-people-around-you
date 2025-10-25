@@ -39,7 +39,7 @@ class Command(BaseCommand):
                     formatted_date_of_birth = person.date_of_birth.strftime("%d.%m.%Y")
 
                     event_descriptions_text += f"- Birthday: {person.name} turned {person.age} years today (born {formatted_date_of_birth})\n"
-                    event_descriptions_html += f"<li>Birthday>: <b>{person.name}</b> turned <b>{person.age}</b> years today (born {formatted_date_of_birth})</li>"
+                    event_descriptions_html += f"<li>Birthday: <b>{person.name}</b> turned <b>{person.age}</b> years today (born {formatted_date_of_birth})</li>"
 
                 if (
                     person.date_of_death
