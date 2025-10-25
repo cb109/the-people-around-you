@@ -7,6 +7,11 @@ from people.core import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
+    path(
+        "login",
+        views.LoginView.as_view(),
+        name="login",
+    ),
     # API
     path("api/persons/create", views.create_person, name="create-person"),
     path("api/persons/<int:person_id>", views.update_person, name="update-person"),

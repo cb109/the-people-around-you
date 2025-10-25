@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth import views as auth_views
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.http import JsonResponse
@@ -10,6 +11,9 @@ from people.core.models import Person, Image, PersonImage
 
 
 FALLBACK_AVATAR_URL = "https://i.imgur.com/cGonva6.png"
+
+class LoginView(auth_views.LoginView):
+    template_name = "core/login.html"
 
 
 class PersonForm(forms.ModelForm):
