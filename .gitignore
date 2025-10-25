@@ -1,6 +1,8 @@
+.env
 *.py[cod]
-venv/
+Activate.ps1
+db.sqlite3
 dev_backend.*
 dev_frontend.*
 media/
-db.sqlite3
+venv/

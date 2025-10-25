@@ -128,11 +128,12 @@ export default {
         date_of_birth: opts.dateOfBirth || '',
         date_of_death: opts.dateOfDeath || '',
       };
+
       httpPost('/api/persons/' + opts.personId, payload)
         .then((response) => response.json())
         .then((person) => {
-          this.store.setEditedPerson(null);
           this.store.updatePerson(person);
+          this.store.setEditedPerson(null);
         });
     },
   },

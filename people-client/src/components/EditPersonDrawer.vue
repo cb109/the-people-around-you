@@ -80,7 +80,7 @@
               v-if="showDeceasedInput"
               variant="outlined"
               type="date"
-              :value="editedPerson.date_of_death"
+              v-model="dateOfDeath"
               color="primary"
               label="Deceased"
               prepend-inner-icon="mdi-flower-tulip-outline"
@@ -241,12 +241,12 @@ export default {
   watch: {
     editedPerson: function(person) {
       if (person) {
-        this.showDeceasedInput = !!person.date_of_death;
-
         this.name = person.name;
         this.details = person.details;
         this.dateOfBirth = person.date_of_birth;
         this.dateOfDeath = person.date_of_death;
+
+        this.showDeceasedInput = !!this.dateOfDeath;
       }
     },
   },
