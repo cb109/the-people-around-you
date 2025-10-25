@@ -4,7 +4,7 @@ from django.utils.safestring import mark_safe
 
 from simple_history.admin import SimpleHistoryAdmin
 
-from people.core.models import User, Person, Image, PersonImage
+from people.core.models import User, Person, Image, PersonImage, SentMail
 
 admin.site.site_header = "The People Around You - Administration"
 
@@ -59,7 +59,31 @@ class ImageAdmin(admin.ModelAdmin):
         return f"<img src='{image.preview.url}' height='120px'>"
 
 
+class ImageAdmin(admin.ModelAdmin):
+    list_display = ("file", "preview_preview", "created_at")
+    search_fields = ("file", "created_at")
+
+    @mark_safe
+    def preview_preview(self, image):
+        if not image.preview.name:
+            return ""
+        return f"<img src='{image.preview.url}' height='120px'>"
+
+
+class SentMailAdmin(admin.ModelAdmin):
+    list_display = (
+        "recipient",
+        "subject",
+        "body_html",
+    )
+
+    @mark_safe
+    def body_html(self, sentmail):
+        return sentmail.html
+
+
 admin.site.register(Image, ImageAdmin)
 admin.site.register(Person, PersonAdmin)
 admin.site.register(PersonImage, PersonImageAdmin)
 admin.site.register(User, CustomUserAdmin)
+admin.site.register(SentMail, SentMailAdmin)
