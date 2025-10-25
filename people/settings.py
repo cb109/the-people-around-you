@@ -12,15 +12,16 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 
 from pathlib import Path
 
+from decouple import config
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
-
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-zj&8-iu_v0!7(&y+%qmvs!9^g7km*iz10mn@ew(s=zn*rp#jo&"
+SECRET_KEY = config("SECRET_KEY", default="very-secret-change-this")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -151,3 +152,12 @@ MEDIA_ROOT = BASE_DIR / "media"
 LOGIN_URL = "/admin/login/"
 LOGIN_REDIRECT_URL = "/"
 LOGOUT_REDIRECT_URL = "/"
+
+EMAIL_NOTIFICATIONS = {
+    "GMAIL_SMTP_SERVER": config("GMAIL_SMTP_SERVER", default="smtp.gmail.com"),
+    "GMAIL_SMTP_PORT": config("GMAIL_SMTP_PORT", cast=int, default=587),
+    "GMAIL_USER": config("GMAIL_USER", default="no-gmail-user-set"),
+    "GMAIL_PWD": config("GMAIL_PWD", default="no-gmail-password-set"),
+}
+
+SITE_URL = config("SITE_URL", default="http://localhost:3000")

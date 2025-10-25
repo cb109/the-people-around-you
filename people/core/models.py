@@ -55,11 +55,18 @@ class Person(TimestampedMixin, models.Model):
 
     @property
     def age(self):
+        return self.get_age()
+
+    def get_age(self, ignore_death=False):
         if not self.date_of_birth:
             return None
 
         # https://stackoverflow.com/a/9754466
-        today = self.date_of_death or date.today()
+        if ignore_death:
+            today = date.today()
+        else:
+            today = self.date_of_death or date.today()
+
         born = self.date_of_birth
         return (
             today.year - born.year - ((today.month, today.day) < (born.month, born.day))
@@ -119,3 +126,13 @@ class PersonImage(TimestampedMixin, models.Model):
 
     def __str__(self):
         return f"{self.person} -> {self.image}"
+
+
+class SentMail(TimestampedMixin, models.Model):
+    """An email that has been sent to someone."""
+
+    sender = models.CharField(max_length=256)
+    recipient = models.CharField(max_length=256)
+    subject = models.TextField()
+    body = models.TextField()
+    html = models.TextField()

@@ -2,3 +2,4 @@ django
 django-cors-headers
 django-simple-history
 pillow
+python-decouple

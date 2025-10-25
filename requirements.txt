@@ -16,6 +16,8 @@ django-simple-history==3.3.0
     # via -r requirements.in
 pillow==9.2.0
     # via -r requirements.in
+python-decouple==3.8
+    # via -r requirements.in
 sqlparse==0.4.3
     # via django
 tzdata==2022.5
